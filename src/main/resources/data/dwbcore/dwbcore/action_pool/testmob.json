@@ -1,0 +1,13 @@
+{
+  "fallback": "minecraft:air",
+  "entries": [
+    {
+      "weight": 1,
+      "data": {
+        "type": "dwbcore:spawn_entity",
+        "entity": "minecraft:pig",
+        "nbt": "{NoAI:1b}"
+      }
+    }
+  ]
+}

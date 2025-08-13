@@ -1,0 +1,21 @@
+{
+  "fallback": "minecraft:dirt",
+  "entries": [
+    {
+      "weight": 1,
+      "data": {
+        "type": "dwbcore:spawn_entity",
+        "entity": "minecraft:pig"
+      }
+    },
+    {
+      "weight": 1,
+      "data": {
+        "type": "dwbcore:place_block",
+        "block_state": {
+          "Name": "minecraft:gold_block"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "fallback": "minecraft:air",
+  "entries": [
+    {
+      "weight": 1,
+      "data": {
+        "type": "dwbcore:place_block",
+        "block_state": {
+          "Name": "minecraft:chest"
+        },
+        "nbt": "{LootTable:'minecraft:chests/ancient_city'}"
+      }
+    }
+  ]
+}

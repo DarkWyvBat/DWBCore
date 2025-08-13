@@ -1,0 +1,39 @@
+package net.darkwyvbat.dwbcore.registry;
+
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+
+import java.util.function.Function;
+
+public final class RegistrationHelper {
+
+    public static Block registerBlock(ResourceLocation path, Function<BlockBehaviour.Properties, Block> function, BlockBehaviour.Properties properties) {
+        ResourceKey<Block> key = ResourceKey.create(Registries.BLOCK, path);
+        return Registry.register(BuiltInRegistries.BLOCK, key, function.apply(properties.setId(key)));
+    }
+
+    public static <T extends BlockEntity> BlockEntityType<T> registerBlockEntity(ResourceLocation path, FabricBlockEntityTypeBuilder<T> builder) {
+        return Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, path, builder.build());
+    }
+
+    public static <T extends Entity> EntityType<T> registerEntity(ResourceLocation path, EntityType.Builder<T> builder) {
+        ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, path);
+        return Registry.register(BuiltInRegistries.ENTITY_TYPE, key, builder.build(key));
+    }
+
+    public static Item registerItem(ResourceLocation path, Function<Item.Properties, Item> itemFactory, Item.Properties properties) {
+        ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, path);
+        return Registry.register(BuiltInRegistries.ITEM, key, itemFactory.apply(properties.setId(key)));
+    }
+}

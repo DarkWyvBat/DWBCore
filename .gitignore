@@ -1,0 +1,7 @@
+.idea/
+.gradle/
+bin/
+build/
+run/
+
+src/main/generated
