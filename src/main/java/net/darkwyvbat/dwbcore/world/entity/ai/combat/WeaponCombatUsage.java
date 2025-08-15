@@ -81,28 +81,24 @@ public final class WeaponCombatUsage {
         });
 
         WEAPON_HANDLERS.put(Items.SPLASH_POTION, (state, item, hand) -> {
-            if (state.isRangedCooldownReady() && state.canSeeTarget() && EntityUtils.isFirelineClear(state.getMob(), 16, e -> e.getType() == state.getMob().getType())) {
-                state.getMob().performRangedAttack(state.getTarget(), hand, 1.0F);
-                state.getMob().swing(hand);
-                state.startRangedCooldown(10);
-            }
+            throwProjectile(state, item, hand, 20);
         });
 
         WEAPON_HANDLERS.put(Items.LINGERING_POTION, (state, item, hand) -> {
-            if (state.isRangedCooldownReady() && state.canSeeTarget() && EntityUtils.isFirelineClear(state.getMob(), 16, e -> e.getType() == state.getMob().getType())) {
-                state.getMob().performRangedAttack(state.getTarget(), hand, 1.0F);
-                state.getMob().swing(hand);
-                state.startRangedCooldown(10);
-            }
+            throwProjectile(state, item, hand, 20);
         });
 
         WEAPON_HANDLERS.put(Items.WIND_CHARGE, (state, item, hand) -> {
-            if (state.isRangedCooldownReady() && state.canSeeTarget() && EntityUtils.isFirelineClear(state.getMob(), 16, e -> e.getType() == state.getMob().getType())) {
-                state.getMob().performRangedAttack(state.getTarget(), hand, 1.0F);
-                state.getMob().swing(hand);
-                state.startRangedCooldown(20);
-            }
+            throwProjectile(state, item, hand, 30);
         });
+    }
+
+    private static void throwProjectile(CombatState state, ItemStack itemStack, InteractionHand hand, int cd) {
+        if (state.isRangedCooldownReady() && state.canSeeTarget() && EntityUtils.isFirelineClear(state.getMob(), 16, e -> e.getType() == state.getMob().getType())) {
+            state.getMob().performRangedAttack(state.getTarget(), hand, 1.0F);
+            state.getMob().swing(hand);
+            state.startRangedCooldown(cd);
+        }
     }
 
     public static void register(Item weapon, WeaponHandler handler) {
