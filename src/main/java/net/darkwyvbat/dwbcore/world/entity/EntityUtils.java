@@ -12,11 +12,11 @@ import java.util.function.Predicate;
 
 public final class EntityUtils {
 
-    public static boolean isEntityOnFireLine(Entity shooter, double dist, Predicate<Entity> predicate) {
+    public static boolean isFirelineClear(Entity shooter, double dist, Predicate<Entity> predicate) {
         Vec3 startPos = shooter.getEyePosition();
         Vec3 lookVec = shooter.getViewVector(1.0F);
         AABB aabb = shooter.getBoundingBox().expandTowards(lookVec.scale(dist)).inflate(1.0);
-        return ProjectileUtil.getEntityHitResult(shooter, startPos, startPos.add(lookVec.scale(dist)), aabb, predicate, dist * dist) != null;
+        return ProjectileUtil.getEntityHitResult(shooter, startPos, startPos.add(lookVec.scale(dist)), aabb, predicate, dist * dist) == null;
     }
 
     public static List<Entity> getEntitiesInAABB(LivingEntity entity, int dist) {

@@ -34,7 +34,7 @@ public final class WeaponCombatUsage {
                     mob.stopUsingItem();
                     return;
                 }
-                if (state.canSeeTarget() && !EntityUtils.isEntityOnFireLine(mob, 16, e -> e.getType() == mob.getType()) && ticks > BowItem.MAX_DRAW_DURATION) {
+                if (state.canSeeTarget() && EntityUtils.isFirelineClear(mob, 16, e -> e.getType() == mob.getType()) && ticks > BowItem.MAX_DRAW_DURATION) {
                     mob.releaseUsingItem();
                     mob.performRangedAttack(state.getTarget(), mob.getUsedItemHand(), BowItem.getPowerForTime(ticks));
                     state.startRangedCooldown(state.getConfig().rangedConfig().cd());
@@ -46,7 +46,7 @@ public final class WeaponCombatUsage {
 
         WEAPON_HANDLERS.put(Items.CROSSBOW, (state, item, hand) -> {
             if (CrossbowItem.isCharged(item) && state.isRangedCooldownReady() && state.canSeeTarget()) {
-                if (!EntityUtils.isEntityOnFireLine(state.getMob(), 16, e -> e.getType() == state.getMob().getType())) {
+                if (EntityUtils.isFirelineClear(state.getMob(), 16, e -> e.getType() == state.getMob().getType())) {
                     ((CrossbowItem) item.getItem()).performShooting(state.getMob().level(), state.getMob(), hand, item, 1.6f, PROJECTILE_ACCURACY, state.getMob().getTarget());
                     state.startRangedCooldown(state.getConfig().rangedConfig().cd());
                     state.getMob().stopUsingItem();
@@ -71,7 +71,7 @@ public final class WeaponCombatUsage {
                     mob.stopUsingItem();
                     return;
                 }
-                if (mob.getTicksUsingItem() > TridentItem.THROW_THRESHOLD_TIME && state.canSeeTarget() && !EntityUtils.isEntityOnFireLine(mob, 16, e -> e.getType() == mob.getType())) {
+                if (mob.getTicksUsingItem() > TridentItem.THROW_THRESHOLD_TIME && state.canSeeTarget() && EntityUtils.isFirelineClear(mob, 16, e -> e.getType() == mob.getType())) {
                     mob.performRangedAttack(state.getTarget(), mob.getUsedItemHand(), 1.0F);
                     state.startRangedCooldown(state.getConfig().rangedConfig().cd() * 2);
                     mob.stopUsingItem();
@@ -81,7 +81,7 @@ public final class WeaponCombatUsage {
         });
 
         WEAPON_HANDLERS.put(Items.SPLASH_POTION, (state, item, hand) -> {
-            if (state.isRangedCooldownReady() && state.canSeeTarget() && !EntityUtils.isEntityOnFireLine(state.getMob(), 16, e -> e.getType() == state.getMob().getType())) {
+            if (state.isRangedCooldownReady() && state.canSeeTarget() && EntityUtils.isFirelineClear(state.getMob(), 16, e -> e.getType() == state.getMob().getType())) {
                 state.getMob().performRangedAttack(state.getTarget(), hand, 1.0F);
                 state.getMob().swing(hand);
                 state.startRangedCooldown(10);
@@ -89,7 +89,7 @@ public final class WeaponCombatUsage {
         });
 
         WEAPON_HANDLERS.put(Items.LINGERING_POTION, (state, item, hand) -> {
-            if (state.isRangedCooldownReady() && state.canSeeTarget() && !EntityUtils.isEntityOnFireLine(state.getMob(), 16, e -> e.getType() == state.getMob().getType())) {
+            if (state.isRangedCooldownReady() && state.canSeeTarget() && EntityUtils.isFirelineClear(state.getMob(), 16, e -> e.getType() == state.getMob().getType())) {
                 state.getMob().performRangedAttack(state.getTarget(), hand, 1.0F);
                 state.getMob().swing(hand);
                 state.startRangedCooldown(10);
@@ -97,7 +97,7 @@ public final class WeaponCombatUsage {
         });
 
         WEAPON_HANDLERS.put(Items.WIND_CHARGE, (state, item, hand) -> {
-            if (state.isRangedCooldownReady() && state.canSeeTarget() && !EntityUtils.isEntityOnFireLine(state.getMob(), 16, e -> e.getType() == state.getMob().getType())) {
+            if (state.isRangedCooldownReady() && state.canSeeTarget() && EntityUtils.isFirelineClear(state.getMob(), 16, e -> e.getType() == state.getMob().getType())) {
                 state.getMob().performRangedAttack(state.getTarget(), hand, 1.0F);
                 state.getMob().swing(hand);
                 state.startRangedCooldown(20);
