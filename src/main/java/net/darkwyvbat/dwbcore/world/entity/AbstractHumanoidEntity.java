@@ -129,7 +129,6 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
         return getDefaultDimensions(Pose.CROUCHING);
     }
 
-
     @Override
     public void setSwimming(boolean swimming) {
         super.setSwimming(swimming);
@@ -255,6 +254,10 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
         return (float) speed;
     }
 
+    protected float getEyeHeightModifier() {
+        return 1.0F;
+    }
+
     protected float getDimScale() {
         return 1.0F;
     }
@@ -269,7 +272,8 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
             case DYING -> DYING_DIMENSIONS;
             default -> STANDING_DIMENSIONS;
         };
-        return dimension.scale(getDimScale());
+        EntityDimensions scaled = dimension.scale(getDimScale());
+        return scaled.withEyeHeight(scaled.eyeHeight() * getEyeHeightModifier());
     }
 
     public boolean holdRangedWeapon() {
