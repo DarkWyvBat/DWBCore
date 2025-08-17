@@ -80,6 +80,11 @@ public class HumanoidTester extends AbstractInventoryHumanoid implements Growabl
     }
 
     @Override
+    protected float getDimScale() {
+        return isBaby() ? 0.5F : super.getDimScale();
+    }
+
+    @Override
     protected void customServerAiStep(ServerLevel serverLevel) {
         super.customServerAiStep(serverLevel);
         tickTimeline();
@@ -128,6 +133,13 @@ public class HumanoidTester extends AbstractInventoryHumanoid implements Growabl
     @Override
     public boolean isBaby() {
         return this.getEntityData().get(DATA_BABY_ID);
+    }
+
+    @Override
+    public void onSyncedDataUpdated(EntityDataAccessor<?> entityDataAccessor) {
+        if (DATA_BABY_ID.equals(entityDataAccessor))
+            this.refreshDimensions();
+        super.onSyncedDataUpdated(entityDataAccessor);
     }
 
     @Override

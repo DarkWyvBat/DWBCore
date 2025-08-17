@@ -31,19 +31,19 @@ import static net.darkwyvbat.dwbcore.DwbCore.INFO;
 
 public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implements Crouchable {
 
-    protected static final Vec3 DEFAULT_VEHICLE_ATTACHMENT = new Vec3(0.0, 0.6, 0.0);
+    public static final Vec3 DEFAULT_VEHICLE_ATTACHMENT = new Vec3(0.0, 0.6, 0.0);
 
-    protected static final EntityDimensions STANDING_DIMENSIONS = EntityDimensions.scalable(0.6F, 1.8F)
+    public static final EntityDimensions STANDING_DIMENSIONS = EntityDimensions.scalable(0.6F, 1.8F)
             .withEyeHeight(1.62F)
             .withAttachments(EntityAttachments.builder().attach(EntityAttachment.VEHICLE, DEFAULT_VEHICLE_ATTACHMENT));
-    protected static final EntityDimensions SITTING_DIMENSIONS = STANDING_DIMENSIONS.scale(1.0F, 0.7F);
-    protected static final EntityDimensions SLEEPING_DIMENSIONS = EntityDimensions.fixed(0.2F, 0.2F);
-    protected static final EntityDimensions SMALL_HITBOX_DIMENSIONS = EntityDimensions.scalable(0.6F, 0.6F)
+    public static final EntityDimensions SITTING_DIMENSIONS = STANDING_DIMENSIONS.scale(1.0F, 0.7F);
+    public static final EntityDimensions SLEEPING_DIMENSIONS = EntityDimensions.fixed(0.2F, 0.2F);
+    public static final EntityDimensions SMALL_HITBOX_DIMENSIONS = EntityDimensions.scalable(0.6F, 0.6F)
             .withEyeHeight(0.4F);
-    protected static final EntityDimensions CROUCHING_DIMENSIONS = EntityDimensions.scalable(0.6F, 1.5F)
+    public static final EntityDimensions CROUCHING_DIMENSIONS = EntityDimensions.scalable(0.6F, 1.5F)
             .withEyeHeight(1.27F)
             .withAttachments(EntityAttachments.builder().attach(EntityAttachment.VEHICLE, DEFAULT_VEHICLE_ATTACHMENT));
-    protected static final EntityDimensions DYING_DIMENSIONS = EntityDimensions.fixed(0.2F, 0.2F)
+    public static final EntityDimensions DYING_DIMENSIONS = EntityDimensions.fixed(0.2F, 0.2F)
             .withEyeHeight(1.62F);
 
     private static final EntityDataAccessor<Integer> DATA_MOB_STATE = SynchedEntityData.defineId(AbstractHumanoidEntity.class, EntityDataSerializers.INT);
