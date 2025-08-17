@@ -1,8 +1,8 @@
 package net.darkwyvbat.dwbcore.world.entity;
 
 import net.darkwyvbat.dwbcore.tag.DwbItemTags;
-import net.darkwyvbat.dwbcore.util.Cooldown;
 import net.darkwyvbat.dwbcore.util.PoorRandom;
+import net.darkwyvbat.dwbcore.util.time.Cooldown;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;

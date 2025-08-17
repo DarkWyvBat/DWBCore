@@ -46,7 +46,6 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
     @Override
     protected void customServerAiStep(ServerLevel serverLevel) {
         super.customServerAiStep(serverLevel);
-
         if (tickCount % 64 == 0)
             this.wantedItems = inspectItemEntities(this.perception.getLastScan().itemsAround());
 

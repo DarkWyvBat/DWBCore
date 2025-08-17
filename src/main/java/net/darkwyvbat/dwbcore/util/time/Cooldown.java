@@ -1,4 +1,4 @@
-package net.darkwyvbat.dwbcore.util;
+package net.darkwyvbat.dwbcore.util.time;
 
 public class Cooldown {
 

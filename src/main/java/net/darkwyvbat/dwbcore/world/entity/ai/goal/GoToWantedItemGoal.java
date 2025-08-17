@@ -1,6 +1,6 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.goal;
 
-import net.darkwyvbat.dwbcore.util.Cooldown;
+import net.darkwyvbat.dwbcore.util.time.Cooldown;
 import net.darkwyvbat.dwbcore.world.entity.AbstractInventoryHumanoid;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.item.ItemEntity;

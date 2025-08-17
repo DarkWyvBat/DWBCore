@@ -1,6 +1,8 @@
 package net.darkwyvbat.dwbcore.debug;
 
+import net.darkwyvbat.dwbcore.util.time.Timeline;
 import net.darkwyvbat.dwbcore.world.entity.AbstractInventoryHumanoid;
+import net.darkwyvbat.dwbcore.world.entity.GrowableMob;
 import net.darkwyvbat.dwbcore.world.entity.ai.combat.DwbCombatConfigs;
 import net.darkwyvbat.dwbcore.world.entity.ai.goal.*;
 import net.darkwyvbat.dwbcore.world.entity.ai.nav.HumanoidLikeMoveControl;
@@ -13,6 +15,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -24,10 +27,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-public class HumanoidTester extends AbstractInventoryHumanoid {
+public class HumanoidTester extends AbstractInventoryHumanoid implements GrowableMob<HumanoidTester> {
 
     private static final EntityDataAccessor<Boolean> DATA_BABY_ID = SynchedEntityData.defineId(HumanoidTester.class, EntityDataSerializers.BOOLEAN);
     private static final AttributeModifier SPEED_MODIFIER_BABY = new AttributeModifier(ResourceLocation.withDefaultNamespace("baby"), 0.2F, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+
+    private final Timeline<HumanoidTester> timeline = new Timeline<>(this);
 
     public HumanoidTester(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
@@ -37,6 +42,8 @@ public class HumanoidTester extends AbstractInventoryHumanoid {
         navigator.setCanOpenDoors(true);
         navigator.setCanOpenGates(true);
         this.navigation = navigator;
+        defineTimeline();
+        timeline.init();
     }
 
     @Override
@@ -55,6 +62,27 @@ public class HumanoidTester extends AbstractInventoryHumanoid {
                 .add(Attributes.STEP_HEIGHT, 0.8F)
                 .add(Attributes.SAFE_FALL_DISTANCE, 4.0)
                 .add(Attributes.SCALE, 1.0);
+    }
+
+    @Override
+    public int getGrowthDuration() {
+        return 60;
+    }
+
+    @Override
+    public Timeline<HumanoidTester> getTimeline() {
+        return timeline;
+    }
+
+    @Override
+    public void onGrow() {
+        System.out.println("blyat");
+    }
+
+    @Override
+    protected void customServerAiStep(ServerLevel serverLevel) {
+        super.customServerAiStep(serverLevel);
+        tickTimeline();
     }
 
     @Override
@@ -106,11 +134,13 @@ public class HumanoidTester extends AbstractInventoryHumanoid {
     protected void addAdditionalSaveData(ValueOutput valueOutput) {
         super.addAdditionalSaveData(valueOutput);
         valueOutput.putBoolean("IsBaby", this.isBaby());
+        saveChronology(valueOutput);
     }
 
     @Override
     protected void readAdditionalSaveData(ValueInput valueInput) {
         super.readAdditionalSaveData(valueInput);
         this.setBaby(valueInput.getBooleanOr("IsBaby", false));
+        loadChronology(valueInput);
     }
 }

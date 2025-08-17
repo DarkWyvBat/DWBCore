@@ -1,7 +1,7 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.combat.strategy;
 
-import net.darkwyvbat.dwbcore.util.Cooldown;
 import net.darkwyvbat.dwbcore.util.PoorRandom;
+import net.darkwyvbat.dwbcore.util.time.Cooldown;
 import net.darkwyvbat.dwbcore.world.entity.ai.combat.CombatState;
 import net.darkwyvbat.dwbcore.world.entity.ai.combat.CombatStrategy;
 import net.darkwyvbat.dwbcore.world.entity.ai.nav.MovementHelper;

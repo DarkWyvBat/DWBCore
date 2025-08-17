@@ -1,6 +1,6 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.goal;
 
-import net.darkwyvbat.dwbcore.util.Cooldown;
+import net.darkwyvbat.dwbcore.util.time.Cooldown;
 import net.darkwyvbat.dwbcore.world.entity.AbstractInventoryHumanoid;
 import net.darkwyvbat.dwbcore.world.entity.ai.combat.CombatConfig;
 import net.darkwyvbat.dwbcore.world.entity.ai.combat.CombatCooldowns;

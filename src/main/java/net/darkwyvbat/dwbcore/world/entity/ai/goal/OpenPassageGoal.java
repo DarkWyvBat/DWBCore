@@ -2,7 +2,7 @@ package net.darkwyvbat.dwbcore.world.entity.ai.goal;
 
 import com.google.common.collect.Sets;
 import net.darkwyvbat.dwbcore.tag.DwbBlockTags;
-import net.darkwyvbat.dwbcore.util.Cooldown;
+import net.darkwyvbat.dwbcore.util.time.Cooldown;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;

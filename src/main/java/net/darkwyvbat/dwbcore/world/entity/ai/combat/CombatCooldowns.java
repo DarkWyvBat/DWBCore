@@ -1,6 +1,6 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.combat;
 
-import net.darkwyvbat.dwbcore.util.Cooldown;
+import net.darkwyvbat.dwbcore.util.time.Cooldown;
 
 public record CombatCooldowns(Cooldown path, Cooldown melee, Cooldown ranged, Cooldown retreat) {
     public CombatCooldowns() {
