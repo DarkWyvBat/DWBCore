@@ -1,6 +1,7 @@
 package net.darkwyvbat.dwbcore.debug;
 
 import net.darkwyvbat.dwbcore.util.time.Timeline;
+import net.darkwyvbat.dwbcore.world.entity.AbstractHumanoidEntity;
 import net.darkwyvbat.dwbcore.world.entity.AbstractInventoryHumanoid;
 import net.darkwyvbat.dwbcore.world.entity.GrowableMob;
 import net.darkwyvbat.dwbcore.world.entity.ai.combat.DwbCombatConfigs;
@@ -37,11 +38,7 @@ public class HumanoidTester extends AbstractInventoryHumanoid implements Growabl
     public HumanoidTester(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
         this.moveControl = new HumanoidLikeMoveControl(this);
-        HumanoidLikePathNavigation navigator = new HumanoidLikePathNavigation(this, level);
-        navigator.setCanPassDoors(true);
-        navigator.setCanOpenDoors(true);
-        navigator.setCanOpenGates(true);
-        this.navigation = navigator;
+        this.navigation = new HumanoidLikePathNavigation(this, level);
         defineTimeline();
         timeline.init();
     }
@@ -53,14 +50,14 @@ public class HumanoidTester extends AbstractInventoryHumanoid implements Growabl
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return PathfinderMob.createMobAttributes()
+        return AbstractHumanoidEntity.createHumanoidAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.25)
                 .add(Attributes.WATER_MOVEMENT_EFFICIENCY, 0.25)
                 .add(Attributes.ATTACK_DAMAGE, 1.0)
                 .add(Attributes.FOLLOW_RANGE, 32.0)
                 .add(Attributes.STEP_HEIGHT, 0.8F)
-                .add(Attributes.SAFE_FALL_DISTANCE, 4.0)
+                .add(Attributes.SAFE_FALL_DISTANCE, 3.0)
                 .add(Attributes.SCALE, 1.0);
     }
 

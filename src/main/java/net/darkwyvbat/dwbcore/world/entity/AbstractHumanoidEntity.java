@@ -14,6 +14,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.food.FoodProperties;
@@ -74,6 +75,11 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     protected void readAdditionalSaveData(ValueInput valueInput) {
         super.readAdditionalSaveData(valueInput);
         this.setMobState(MobStates.fromInt(valueInput.getIntOr("MobState", 0)));
+    }
+
+    public static AttributeSupplier.Builder createHumanoidAttributes() {
+        return PathfinderMob.createMobAttributes()
+                .add(Attributes.SNEAKING_SPEED, 0.5);
     }
 
     @Override
@@ -249,7 +255,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     @Override
     public float getSpeed() {
         double speed = getAttributeValue(Attributes.MOVEMENT_SPEED);
-        if (isCrouching()) speed *= 0.5;
+        if (isCrouching()) speed *= getAttributeValue(Attributes.SNEAKING_SPEED);
         if (isUsingItem()) speed *= 0.7;
         return (float) speed;
     }
