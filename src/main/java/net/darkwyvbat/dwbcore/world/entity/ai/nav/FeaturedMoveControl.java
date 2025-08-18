@@ -115,7 +115,7 @@ public class FeaturedMoveControl extends MoveControl {
     private void handleIdle() {
         mob.setSpeed(0.0F);
         if (mob.isInWater()) {
-            if ((mob.tickCount % 8 == 0) && mob.distanceToSqr(mob.getNavigation().getTargetPos().getCenter()) < 4.0 && mob.getNavigation().isDone())
+            if ((mob.tickCount % 8 == 0)  && mob.getNavigation().isDone())
                 mob.getJumpControl().jump();
             mob.setDeltaMovement(mob.getDeltaMovement().multiply(0.8, 0.8, 0.8));
             targetPitch = Mth.rotLerp(PITCH_SMOOTH, targetPitch, 0.0F);
