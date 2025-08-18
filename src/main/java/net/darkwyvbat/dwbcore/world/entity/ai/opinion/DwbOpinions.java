@@ -2,6 +2,7 @@ package net.darkwyvbat.dwbcore.world.entity.ai.opinion;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.entity.animal.Ocelot;
 import net.minecraft.world.entity.animal.sheep.Sheep;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.warden.Warden;
@@ -19,6 +20,7 @@ public final class DwbOpinions {
         Map<Class<? extends Entity>, Opinion> opinions = new IdentityHashMap<>();
         opinions.put(Monster.class, create(Reputation.DISLIKED, DangerLevel.DANGEROUS, InterestLevel.LOW));
         opinions.put(Sheep.class, create(Reputation.DISLIKED, DangerLevel.DANGEROUS, InterestLevel.LOW));
+        opinions.put(Ocelot.class, create(Reputation.DISLIKED, DangerLevel.HARMLESS, InterestLevel.LOW));
         opinions.put(Warden.class, create(Reputation.DISLIKED, DangerLevel.DEADLY, InterestLevel.LOW));
         opinions.put(IronGolem.class, create(Reputation.TRUSTED, DangerLevel.ALLY, InterestLevel.LOW));
         return new OpinionResolver(opinions, UNKNOWN);

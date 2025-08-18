@@ -1,5 +1,6 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.goal;
 
+import net.darkwyvbat.dwbcore.util.PoorRandom;
 import net.darkwyvbat.dwbcore.world.entity.PerceptionBasedMob;
 import net.darkwyvbat.dwbcore.world.entity.ai.opinion.Reputation;
 import net.minecraft.world.entity.Entity;
@@ -29,13 +30,12 @@ public class AttackBadTargetGoal extends TargetGoal {
 
     @Override
     public boolean canUse() {
-        if (attacker.tickCount % 32 != 0)
-            return false;
-        this.findTarget();
-        return this.target != null;
+        if (PoorRandom.quickProb(0.05F))
+            target = findTarget();
+        return target != null;
     }
 
-    protected void findTarget() {
+    protected LivingEntity findTarget() {
         LivingEntity closestTarget = null;
         double closestDistSqr = Double.MAX_VALUE;
         for (Entity entity : attacker.getPerception().getLastScan().entitiesAround()) {
@@ -49,7 +49,7 @@ public class AttackBadTargetGoal extends TargetGoal {
                 }
             }
         }
-        this.target = closestTarget;
+        return closestTarget;
     }
 
     @Override
@@ -57,9 +57,4 @@ public class AttackBadTargetGoal extends TargetGoal {
         this.attacker.setTarget(this.target);
         super.start();
     }
-
-    public boolean requiresUpdateEveryTick() {
-        return true;
-    }
-
 }
