@@ -17,7 +17,7 @@ public final class DwbDebugContent {
 
     private static final EntityType<HumanoidTester> HUMANOID_TESTER = RegistrationHelper.registerEntity(DwbCore.INFO.idOf("humanoid_tester"), EntityType.Builder.of(HumanoidTester::new, MobCategory.MISC).sized(0.6F, 1.8F));
 
-    public static void register() {
+    public static void init() {
         DwbCore.LOGGER.debug("DWB Core client debug content");
         FabricDefaultAttributeRegistry.register(HUMANOID_TESTER, HumanoidTester.createAttributes());
     }

@@ -14,7 +14,7 @@ public final class DwbRegistries {
     public static final ResourceKey<Registry<ProxyBlockActionType<?>>> PROXY_BLOCK_ACTION_TYPE_KEY = ResourceKey.createRegistryKey(INFO.idOf("proxy_block_action_type"));
     public static final Registry<ProxyBlockActionType<?>> PROXY_BLOCK_ACTION_TYPE = FabricRegistryBuilder.createSimple(PROXY_BLOCK_ACTION_TYPE_KEY).buildAndRegister();
 
-    public static void register() {
+    public static void init() {
         DynamicRegistries.register(PROXY_BLOCK_POOL, ProxyBlockPool.CODEC);
     }
 }

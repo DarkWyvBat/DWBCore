@@ -8,7 +8,7 @@ import static net.darkwyvbat.dwbcore.registry.DwbRegistries.PROXY_BLOCK_POOL;
 
 public final class DwbEvents {
 
-    public static void register() {
+    public static void init() {
         registerProxyBlockEvents();
     }
 

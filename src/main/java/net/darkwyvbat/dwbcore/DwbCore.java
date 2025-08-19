@@ -25,10 +25,10 @@ public class DwbCore implements ModInitializer {
         LOGGER.info("DWB Core init...");
 
         if (IS_DEV)
-            DwbDebugContent.register();
+            DwbDebugContent.init();
 
-        DwbRegistries.register();
-        DwbEvents.register();
+        DwbRegistries.init();
+        DwbEvents.init();
         DwbBlocks.init();
         DwbBlockEntityType.init();
         ProxyBlockActionTypes.init();
