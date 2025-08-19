@@ -1,6 +1,7 @@
 package net.darkwyvbat.dwbcore.registry;
 
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+import net.fabricmc.fabric.api.object.builder.v1.world.poi.PointOfInterestHelper;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -8,6 +9,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -35,5 +37,10 @@ public final class RegistrationHelper {
     public static Item registerItem(ResourceLocation path, Function<Item.Properties, Item> itemFactory, Item.Properties properties) {
         ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, path);
         return Registry.register(BuiltInRegistries.ITEM, key, itemFactory.apply(properties.setId(key)));
+    }
+
+    public static ResourceKey<PoiType> registerPoi(ResourceLocation path, int ticketCount, int searchDistance, Block... blocks) {
+        PointOfInterestHelper.register(path, ticketCount, searchDistance, blocks);
+        return ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, path);
     }
 }
