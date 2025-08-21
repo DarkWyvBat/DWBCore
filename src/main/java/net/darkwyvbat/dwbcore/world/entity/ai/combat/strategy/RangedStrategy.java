@@ -21,7 +21,7 @@ public class RangedStrategy extends CombatStrategy {
     public void tick(CombatState state) {
         if (state.isPathCooldownReady()) {
             if ((!state.canSeeTarget() && state.getSeeTime() < 0) || (state.canSeeTarget() && state.getDistanceSqr() > state.getConfig().rangedConfig().prefRangeSqr()))
-                MovementHelper.tryPathToTarget(state.getMob());
+                MovementHelper.tryPathToEntity(state.getMob(), state.getMob().getTarget());
             else if (state.canSeeTarget())
                 state.getMob().getNavigation().stop();
         }

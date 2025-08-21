@@ -32,7 +32,7 @@ public class KitingStrategy extends CombatStrategy {
                 state.setRetreating(true);
             } else {
                 if (state.isPathCooldownReady()) {
-                    MovementHelper.tryPathAwayTarget(state.getMob());
+                    MovementHelper.tryPathAwayEntity(state.getMob(), state.getMob().getTarget());
                     state.startPathCooldown(40);
                 }
             }

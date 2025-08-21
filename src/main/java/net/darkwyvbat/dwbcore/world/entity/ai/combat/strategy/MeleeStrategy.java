@@ -41,7 +41,7 @@ public class MeleeStrategy extends CombatStrategy {
 
         if (state.isPathCooldownReady()) {
             if (!state.getMob().isWithinMeleeAttackRange(state.getTarget()) || !state.canSeeTarget())
-                MovementHelper.tryPathToTarget(state.getMob(), state.getConfig().meleeConfig().speed());
+                MovementHelper.tryPathToEntity(state.getMob(), state.getMob().getTarget(), state.getConfig().meleeConfig().speed());
             else
                 state.getMob().getNavigation().stop();
         }

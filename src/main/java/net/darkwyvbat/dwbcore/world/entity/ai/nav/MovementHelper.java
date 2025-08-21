@@ -43,22 +43,23 @@ public final class MovementHelper {
         return true;
     }
 
-    public static boolean tryPathToTarget(PathfinderMob mob) {
-        return tryPathToTarget(mob, 1.0);
+
+    public static boolean tryPathToEntity(PathfinderMob mob, Entity entity) {
+        return tryPathToEntity(mob, entity, 1.0);
     }
 
-    public static boolean tryPathToTarget(PathfinderMob mob, double speed) {
-        Path path = mob.getNavigation().createPath(mob.getTarget(), 0);
+    public static boolean tryPathToEntity(PathfinderMob mob, Entity entity, double speed) {
+        Path path = mob.getNavigation().createPath(entity, 0);
         if (path == null) return false;
         return mob.getNavigation().moveTo(path, speed);
     }
 
-    public static boolean tryPathAwayTarget(PathfinderMob mob) {
-        return tryPathAwayTarget(mob, 1.0, 8, 8);
+    public static boolean tryPathAwayEntity(PathfinderMob mob, Entity entity) {
+        return tryPathAwayEntity(mob, entity, 1.0, 8, 8);
     }
 
-    public static boolean tryPathAwayTarget(PathfinderMob mob, double speed, int xzSearchR, int ySearchR) {
-        Vec3 dir = LandRandomPos.getPosAway(mob, xzSearchR, ySearchR, mob.getTarget().position());
+    public static boolean tryPathAwayEntity(PathfinderMob mob, Entity entity, double speed, int xzSearchR, int ySearchR) {
+        Vec3 dir = LandRandomPos.getPosAway(mob, xzSearchR, ySearchR, entity.position());
         return dir != null && mob.getNavigation().moveTo(dir.x, dir.y, dir.z, speed);
     }
 }
