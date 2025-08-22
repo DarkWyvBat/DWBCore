@@ -39,6 +39,10 @@ public final class RegistrationHelper {
         return Registry.register(BuiltInRegistries.ITEM, key, itemFactory.apply(properties.setId(key)));
     }
 
+    public static Item registerItem(ResourceLocation path, Function<Item.Properties, Item> itemFactory) {
+        return registerItem(path, itemFactory, new Item.Properties());
+    }
+
     public static ResourceKey<PoiType> registerPoi(ResourceLocation path, int ticketCount, int searchDistance, Block... blocks) {
         PointOfInterestHelper.register(path, ticketCount, searchDistance, blocks);
         return ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, path);
