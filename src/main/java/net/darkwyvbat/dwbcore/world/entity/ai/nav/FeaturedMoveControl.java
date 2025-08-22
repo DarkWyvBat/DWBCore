@@ -13,8 +13,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class FeaturedMoveControl extends MoveControl {
-    private static final float YAW_SMOOTH = 0.25F;
-    private static final float PITCH_SMOOTH = 0.15F;
     private static final float MAX_YAW_LAND = 50.0F;
     private static final float MAX_YAW_WATER = 40.0F;
     private static final float MAX_PITCH_WATER = 32.0F;
@@ -24,9 +22,6 @@ public class FeaturedMoveControl extends MoveControl {
     private static final float JUMP_BOOST = 0.3F;
     private static final double MIN_DIST = 0.1;
 
-    private float targetYaw;
-    private float targetPitch;
-    private boolean firstUpdate = true;
     private int stuckTicks;
 
     public FeaturedMoveControl(Mob mob) {
@@ -36,35 +31,25 @@ public class FeaturedMoveControl extends MoveControl {
     @Override
     public void setWantedPosition(double x, double y, double z, double speed) {
         super.setWantedPosition(x, y, z, speed);
-        if (operation == Operation.MOVE_TO)
-            firstUpdate = true;
     }
 
     @Override
     public void tick() {
-        if (firstUpdate && operation == Operation.MOVE_TO) {
-            targetYaw = mob.getYRot();
-            targetPitch = mob.getXRot();
-            firstUpdate = false;
-        }
-
         float speed = (float) (speedModifier * mob.getAttributeValue(Attributes.MOVEMENT_SPEED));
         if (operation == Operation.MOVE_TO) {
             double dX = wantedX - mob.getX();
             double dY = wantedY - mob.getY();
             double dZ = wantedZ - mob.getZ();
             double distH = Math.sqrt(dX * dX + dZ * dZ);
-            if (distH > MIN_DIST)
-                targetYaw = Mth.rotLerp(YAW_SMOOTH, targetYaw, (float) (Mth.atan2(dZ, dX) * Mth.RAD_TO_DEG) - 90.0F);
+            float directYaw = distH > MIN_DIST ? (float) (Mth.atan2(dZ, dX) * Mth.RAD_TO_DEG) - 90.0F : mob.getYRot();
             float maxTurn = mob.isInWater() ? MAX_YAW_WATER : MAX_YAW_LAND;
-            mob.setYRot(rotlerp(mob.getYRot(), targetYaw, maxTurn));
-            mob.yBodyRot = rotlerp(mob.yBodyRot, mob.getYRot(), MAX_YAW_LAND);
-
+            mob.setYRot(rotlerp(mob.getYRot(), directYaw, maxTurn));
+            mob.yBodyRot = mob.getYRot();
             mob.setSpeed(speed);
             if (mob.isInWater())
                 handleWaterMovement(dX, dY, dZ, distH, speed);
             else
-                handleLandMovement(dX, dY, dZ);
+                handleLandMovement(dY, distH);
         } else if (operation == Operation.JUMPING) {
             mob.setSpeed(speed);
             if (mob.onGround() || (mob.isInLiquid() && mob.isAffectedByFluids())) {
@@ -76,13 +61,12 @@ public class FeaturedMoveControl extends MoveControl {
     }
 
     private void handleWaterMovement(double dX, double dY, double dZ, double distH, float speed) {
-        if ((mob.tickCount % 8 == 0) && mob.getNavigation().getPath() != null && mob.getNavigation().getPath().getNextNode().y > mob.getY() && !mob.isEyeInFluid(FluidTags.WATER))
+        if (mob.tickCount % 8 == 0 && mob.getNavigation().getPath() != null && mob.getNavigation().getPath().getNextNode().y > mob.getY() && !mob.isEyeInFluid(FluidTags.WATER))
             mob.getJumpControl().jump();
 
         float rawPitch = Mth.clamp((float) (Mth.atan2(-dY, distH) * Mth.RAD_TO_DEG), -85.0F, 85.0F);
-        targetPitch = Mth.rotLerp(PITCH_SMOOTH, targetPitch, rawPitch);
-        if (Math.abs(Mth.degreesDifference(mob.getXRot(), targetPitch)) > 1.0F)
-            mob.setXRot(rotlerp(mob.getXRot(), targetPitch, MAX_PITCH_WATER));
+        if (Math.abs(Mth.degreesDifference(mob.getXRot(), rawPitch)) > 1.0F)
+            mob.setXRot(rotlerp(mob.getXRot(), rawPitch, MAX_PITCH_WATER));
 
         double dist = Math.sqrt(dX * dX + dY * dY + dZ * dZ);
         if (dist > 0.001) {
@@ -91,20 +75,19 @@ public class FeaturedMoveControl extends MoveControl {
             Vec3 nextDelta = mob.getDeltaMovement().add(impulse);
             if (dY > 0.1 && mob.horizontalCollision && ++stuckTicks > 8) {
                 nextDelta = nextDelta.add(0, JUMP_BOOST, 0);
-                System.out.println("stuck");
                 stuckTicks = 0;
             }
             mob.setDeltaMovement(nextDelta.multiply(0.97, 0.96, 0.97));
         }
     }
 
-    private void handleLandMovement(double dX, double dY, double dZ) {
-        mob.setXRot(rotlerp(mob.getXRot(), 0.0F, MAX_YAW_LAND / 2F));
+    private void handleLandMovement(double dY, double distH) {
+        mob.setXRot(0.0F);
 
         BlockPos pos = mob.blockPosition();
         BlockState state = mob.level().getBlockState(pos);
         VoxelShape shape = state.getCollisionShape(mob.level(), pos);
-        if (dY > mob.maxUpStep() && dX * dX + dZ * dZ < Math.max(1.0F, mob.getBbWidth()) || !shape.isEmpty() && mob.getY() < shape.max(Direction.Axis.Y) + pos.getY() && !state.is(DwbBlockTags.MOB_INTERACTABLE_PASSAGES)) {
+        if (dY > mob.maxUpStep() && distH * distH < Math.max(1.0F, mob.getBbWidth()) || !shape.isEmpty() && mob.getY() < shape.max(Direction.Axis.Y) + pos.getY() && !state.is(DwbBlockTags.MOB_INTERACTABLE_PASSAGES)) {
             mob.getJumpControl().jump();
             operation = Operation.JUMPING;
         } else
@@ -115,17 +98,14 @@ public class FeaturedMoveControl extends MoveControl {
     private void handleIdle() {
         mob.setSpeed(0.0F);
         if (mob.isInWater()) {
-            if ((mob.tickCount % 8 == 0)  && mob.getNavigation().isDone())
+            if (mob.tickCount % 8 == 0 && mob.getNavigation().isDone())
                 mob.getJumpControl().jump();
             mob.setDeltaMovement(mob.getDeltaMovement().multiply(0.8, 0.8, 0.8));
-            targetPitch = Mth.rotLerp(PITCH_SMOOTH, targetPitch, 0.0F);
-            mob.setXRot(rotlerp(mob.getXRot(), targetPitch, MAX_PITCH_WATER / 2F));
+            mob.setXRot(rotlerp(mob.getXRot(), 0.0F, MAX_PITCH_WATER / 2F));
         } else {
             mob.setZza(0.0F);
-            targetPitch = Mth.rotLerp(PITCH_SMOOTH, targetPitch, 0.0F);
-            mob.setXRot(rotlerp(mob.getXRot(), targetPitch, MAX_YAW_LAND / 3F));
+            mob.setXRot(rotlerp(mob.getXRot(), 0.0F, MAX_YAW_LAND / 3F));
         }
-        firstUpdate = true;
         stuckTicks = 0;
     }
 }
