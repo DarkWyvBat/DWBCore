@@ -44,6 +44,7 @@ public class MeleeStrategy extends CombatStrategy {
                 MovementHelper.tryPathToEntity(state.getMob(), state.getMob().getTarget(), state.getConfig().meleeConfig().speed());
             else
                 state.getMob().getNavigation().stop();
+            state.startPathCooldown(pathToTargetCD(state.getDistanceSqr()));
         }
         if (state.isMeleeCooldownReady() && state.getMob().isWithinMeleeAttackRange(state.getTarget()) && state.canSeeTarget()) {
             state.getMob().swing(InteractionHand.MAIN_HAND);
@@ -55,5 +56,9 @@ public class MeleeStrategy extends CombatStrategy {
     @Override
     public boolean canStart(CombatState state) {
         return !state.getMob().hasRangedWeapon() || state.getDistanceSqr() < state.getConfig().meleeConfig().maxDistSqr();
+    }
+
+    public static int pathToTargetCD(double distSqr) {
+        return distSqr > 64 ? 40 : 10;
     }
 }

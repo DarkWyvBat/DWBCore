@@ -24,6 +24,7 @@ public class RangedStrategy extends CombatStrategy {
                 MovementHelper.tryPathToEntity(state.getMob(), state.getMob().getTarget());
             else if (state.canSeeTarget())
                 state.getMob().getNavigation().stop();
+            state.startPathCooldown(10);
         }
         WeaponCombatUsage.tryRanged(state, InteractionHand.MAIN_HAND);
     }
