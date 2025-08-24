@@ -7,17 +7,18 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.navigation.AmphibiousPathNavigation;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.*;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
+
     protected boolean canOpenDoors = true;
     protected boolean canPassDoors = true;
     protected boolean canOpenGates = true;
+    private BlockPos lastLadderCheckPos = BlockPos.ZERO;
+    private boolean lastLadderCheck = false;
 
     public HumanoidLikePathNavigation(Mob mob, Level level) {
         super(mob, level);
@@ -33,8 +34,8 @@ public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
 
     public void setCanOpenGates(boolean v) {
         canOpenGates = v;
-        if (nodeEvaluator instanceof HumanoidLikeNodeEvaluator cne)
-            cne.setCanOpenGates(v);
+        if (nodeEvaluator instanceof HumanoidLikeNodeEvaluator hne)
+            hne.setCanOpenGates(v);
     }
 
     public boolean canOpenDoors() {
@@ -61,36 +62,46 @@ public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
 
     @Override
     public boolean isStableDestination(BlockPos pos) {
-        return super.isStableDestination(pos) || level.getBlockState(pos).is(Blocks.LADDER);
+        return super.isStableDestination(pos) || level.getBlockState(pos).is(BlockTags.CLIMBABLE);
     }
 
     @Override
     protected @NotNull Vec3 getTempMobPos() {
-        Vec3 base = super.getTempMobPos();
-        BlockPos bp = BlockPos.containing(mob.getX(), mob.getY(), mob.getZ());
-        if (level.getBlockState(bp).is(BlockTags.CLIMBABLE))
-            return Vec3.atCenterOf(bp);
-        if (level.getBlockState(bp).isAir())
-            for (Direction dir : Direction.Plane.HORIZONTAL)
-                if (level.getBlockState(bp.relative(dir)).is(BlockTags.CLIMBABLE))
-                    return Vec3.atCenterOf(bp.relative(dir));
-        return base;
+        BlockPos pos = mob.blockPosition();
+        if (pos.equals(lastLadderCheckPos))
+            return lastLadderCheck ? Vec3.atCenterOf(pos) : super.getTempMobPos();
+
+        lastLadderCheckPos = pos;
+        if (level.getBlockState(pos).is(BlockTags.CLIMBABLE)) {
+            lastLadderCheck = true;
+            return Vec3.atCenterOf(pos);
+        }
+        if (level.getBlockState(pos).isAir())
+            for (Direction dir : Direction.Plane.HORIZONTAL) {
+                BlockPos blockPos = pos.relative(dir);
+                if (level.getBlockState(blockPos).is(BlockTags.CLIMBABLE)) {
+                    lastLadderCheck = true;
+                    return Vec3.atCenterOf(blockPos);
+                }
+            }
+        lastLadderCheck = false;
+        return super.getTempMobPos();
     }
 
     @Override
-    public boolean moveTo(@Nullable Path newPath, double speed) {
-        if (newPath != null && this.path != null && !this.path.isDone() && !newPath.isDone()) {
+    public boolean moveTo(@Nullable Path path, double speed) {
+        if (path != null && this.path != null && !this.path.isDone() && !path.isDone()) {
             Node oldNext = this.path.getNextNode();
             Node oldPrev = this.path.getPreviousNode();
-            if (oldNext.type == PathType.COCOA && newPath.getNextNode().type == PathType.COCOA)
-                syncIndexByNode(newPath, oldNext);
-            else if (oldPrev != null && oldPrev.type == PathType.COCOA && newPath.getNextNode().type != PathType.COCOA) {
-                syncIndexByNode(newPath, oldNext);
-                if (newPath.getNextNodeIndex() == 0)
-                    syncIndexByNode(newPath, oldPrev);
+            if (oldNext.type == PathType.COCOA && path.getNextNode().type == PathType.COCOA)
+                syncIndexByNode(path, oldNext);
+            else if (oldPrev != null && oldPrev.type == PathType.COCOA && path.getNextNode().type != PathType.COCOA) {
+                syncIndexByNode(path, oldNext);
+                if (path.getNextNodeIndex() == 0)
+                    syncIndexByNode(path, oldPrev);
             }
         }
-        return super.moveTo(newPath, speed);
+        return super.moveTo(path, speed);
     }
 
     @Override
@@ -104,33 +115,24 @@ public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
         Node nextNode = path.getNextNode(), prevNode = path.getPreviousNode();
         if (mob instanceof Crouchable crouchable)
             crouchable.setCrouch(nextNode.type == HumanoidLikeNodeEvaluator.CROUCH_PATH_TYPE || prevNode != null && prevNode.type == HumanoidLikeNodeEvaluator.CROUCH_PATH_TYPE);
+
         boolean nextIsLadder = nextNode.type == PathType.COCOA;
         boolean prevIsLadder = prevNode != null && prevNode.type == PathType.COCOA;
         if (nextIsLadder || prevIsLadder) {
-            BlockPos blockPos = BlockPos.containing(pos);
-            BlockState blockState = level.getBlockState(blockPos);
-            boolean isOnLadder = blockState.is(BlockTags.CLIMBABLE) || (blockState.isAir() && level.getBlockState(blockPos.below()).is(BlockTags.CLIMBABLE));
-            boolean readyToAdvance = false;
-            Vec3 center = Vec3.atBottomCenterOf(nextNode.asBlockPos());
-            double distXZ = pos.distanceToSqr(center.x, pos.y, center.z);
+            Vec3 target = nextIsLadder ? Vec3.atBottomCenterOf(nextNode.asBlockPos()) : path.getNextEntityPos(mob);
+            if (pos.distanceToSqr(target.x, pos.y, target.z) < (nextIsLadder ? 0.4 : 0.04)) {
+                boolean advance;
+                if (nextIsLadder && prevIsLadder) {
+                    if (nextNode.y > prevNode.y) advance = pos.y >= nextNode.y - 0.05;
+                    else if (nextNode.y < prevNode.y) advance = pos.y <= nextNode.y + 0.2;
+                    else advance = Math.abs(pos.y - nextNode.y) < 0.3;
+                } else if (nextIsLadder)
+                    advance = Math.abs(pos.y - nextNode.y) < 0.8;
+                else
+                    advance = mob.onGround() || Math.abs(pos.y - WalkNodeEvaluator.getFloorLevel(level, nextNode.asBlockPos())) < 0.1;
 
-            if (nextIsLadder && !prevIsLadder)
-                readyToAdvance = distXZ < 0.4 && Math.abs(pos.y - nextNode.y) < 0.8;
-            else if (nextIsLadder && isOnLadder) {
-                if (distXZ < 0.4) {
-                    if (nextNode.y > prevNode.y)
-                        readyToAdvance = pos.y >= nextNode.y - 0.05;
-                    else if (nextNode.y < prevNode.y)
-                        readyToAdvance = pos.y <= nextNode.y + 0.2;
-                    else
-                        readyToAdvance = Math.abs(pos.y - nextNode.y) < 0.3;
-                }
-            } else if (!nextIsLadder) {
-                readyToAdvance = mob.position().distanceToSqr(path.getNextEntityPos(mob)) < 0.04;
-                if (!readyToAdvance)
-                    readyToAdvance = Math.abs(pos.y - WalkNodeEvaluator.getFloorLevel(level, nextNode.asBlockPos())) < 0.1 && (mob.onGround() || !level.getBlockState(nextNode.asBlockPos().below()).isAir());
+                if (advance) path.advance();
             }
-            if (readyToAdvance) path.advance();
         } else
             super.followThePath();
 
@@ -150,12 +152,26 @@ public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
     }
 
     private void syncIndexByNode(Path path, Node targetNode) {
-        for (int i = 0; i < path.getNodeCount(); i++) {
-            Node node = path.getNode(i);
-            if (node.x == targetNode.x && node.y == targetNode.y && node.z == targetNode.z) {
+        int count = path.getNodeCount();
+        int current = path.getNextNodeIndex();
+        for (int offset = 0; offset < 3; ++offset) {
+            int i = current + offset;
+            if (i >= 0 && i < count && path.getNode(i).equals(targetNode)) {
                 path.setNextNodeIndex(i);
-                break;
+                return;
+            }
+            if (offset != 0) {
+                i = current - offset;
+                if (i >= 0 && i < count && path.getNode(i).equals(targetNode)) {
+                    path.setNextNodeIndex(i);
+                    return;
+                }
             }
         }
+        for (int i = 0; i < count; i++)
+            if (path.getNode(i).equals(targetNode)) {
+                path.setNextNodeIndex(i);
+                return;
+            }
     }
 }

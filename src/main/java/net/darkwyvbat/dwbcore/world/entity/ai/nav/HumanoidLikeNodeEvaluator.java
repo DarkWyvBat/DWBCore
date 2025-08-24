@@ -1,5 +1,9 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.nav;
 
+import it.unimi.dsi.fastutil.longs.Long2BooleanMap;
+import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.darkwyvbat.dwbcore.world.entity.Crouchable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -22,6 +26,9 @@ public class HumanoidLikeNodeEvaluator extends AmphibiousNodeEvaluator {
     public static final PathType CROUCH_PATH_TYPE = PathType.DAMAGE_CAUTIOUS;
 
     protected boolean canOpenGates;
+    private final Long2BooleanMap collisionCache = new Long2BooleanOpenHashMap();
+    private final Long2ObjectMap<PathType> ladderCache = new Long2ObjectOpenHashMap<>();
+    private int cacheReset = 0;
 
     public HumanoidLikeNodeEvaluator(boolean prefersShallowSwimming) {
         super(prefersShallowSwimming);
@@ -44,6 +51,12 @@ public class HumanoidLikeNodeEvaluator extends AmphibiousNodeEvaluator {
             setCanPassDoors(nav.canPassDoors());
             setCanOpenGates(nav.canOpenGates());
         }
+
+        if (++cacheReset > 100) {
+            collisionCache.clear();
+            ladderCache.clear();
+            cacheReset = 0;
+        }
     }
 
     @Override
@@ -52,39 +65,52 @@ public class HumanoidLikeNodeEvaluator extends AmphibiousNodeEvaluator {
         if (pathType != PathType.BLOCKED) return pathType;
         if (!(mob instanceof Crouchable crouchableMob) || !crouchableMob.canCrouch()) return PathType.BLOCKED;
 
+        long key = BlockPos.asLong(x, y, z);
+        if (collisionCache.containsKey(key)) return collisionCache.get(key) ? CROUCH_PATH_TYPE : PathType.BLOCKED;
         int origHeight = entityHeight;
         entityHeight = 1;
         PathType floorLevelType = super.getPathTypeOfMob(context, x, y, z, mob);
         entityHeight = origHeight;
-        if (floorLevelType == PathType.WALKABLE_DOOR || floorLevelType == PathType.FENCE) return floorLevelType;
+
+        if (floorLevelType == PathType.WALKABLE_DOOR) {
+            collisionCache.put(key, true);
+            return floorLevelType;
+        }
         AABB aabb = crouchableMob.getCrouchDimension().makeBoundingBox(x + 0.5, y, z + 0.5);
-        if (!hasCollision(aabb)) return CROUCH_PATH_TYPE;
+        boolean canPass = currentContext.level().noCollision(mob, aabb);
+        collisionCache.put(key, canPass);
 
-        return PathType.BLOCKED;
-    }
-
-    private boolean hasCollision(AABB aabb) {
-        return !currentContext.level().noCollision(mob, aabb);
+        return canPass ? CROUCH_PATH_TYPE : PathType.BLOCKED;
     }
 
     @Override
     public @NotNull PathType getPathType(PathfindingContext ctx, int x, int y, int z) {
+        long key = BlockPos.asLong(x, y, z);
+        PathType pathType = ladderCache.get(key);
+        if (pathType != null) return pathType;
+
         BlockState state = ctx.getBlockState(new BlockPos(x, y, z));
-        if (state.is(BlockTags.CLIMBABLE)) return PathType.COCOA;
-        if (canOpenGates && state.getBlock() instanceof FenceGateBlock && !state.getValue(FenceGateBlock.OPEN))
-            return PathType.WALKABLE_DOOR;
-        return super.getPathType(ctx, x, y, z);
+        PathType result;
+        if (state.is(BlockTags.CLIMBABLE))
+            result = PathType.COCOA;
+        else if (canOpenGates && state.getBlock() instanceof FenceGateBlock)
+            result = PathType.WALKABLE_DOOR;
+        else
+            result = super.getPathType(ctx, x, y, z);
+        ladderCache.put(key, result);
+
+        return result;
     }
 
     @Override
     public int getNeighbors(Node[] neighbors, Node node) {
         int count = super.getNeighbors(neighbors, node);
-        BlockPos pos = node.asBlockPos();
         PathType nodeType = getCachedPathType(node.x, node.y, node.z);
 
         if (nodeType == PathType.COCOA) {
             count = addNode(neighbors, count, getLadderNode(node.x, node.y + 1, node.z));
             count = addNode(neighbors, count, getLadderNode(node.x, node.y - 1, node.z));
+            BlockPos pos = node.asBlockPos();
             if (currentContext.getBlockState(pos.above()).isAir())
                 count = addNode(neighbors, count, getPotentialNde(node.x, node.y + 1, node.z));
 
@@ -94,6 +120,7 @@ public class HumanoidLikeNodeEvaluator extends AmphibiousNodeEvaluator {
                 count = addNode(neighbors, count, getPotentialNde(node.x + face.getStepX(), node.y, node.z + face.getStepZ()));
             }
         } else {
+            BlockPos pos = node.asBlockPos();
             for (Direction dir : Direction.Plane.HORIZONTAL) {
                 BlockPos check = pos.relative(dir);
                 if (currentContext.getBlockState(check).is(BlockTags.CLIMBABLE))
