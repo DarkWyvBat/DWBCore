@@ -1,19 +1,19 @@
 package net.darkwyvbat.dwbcore.util.time;
 
-public class Cooldown {
+public class TickingCooldown {
 
     protected final int defaultValue;
     protected int ticks;
 
-    public Cooldown() {
+    public TickingCooldown() {
         this(0, 0);
     }
 
-    public Cooldown(int defaultValue) {
+    public TickingCooldown(int defaultValue) {
         this(0, defaultValue);
     }
 
-    public Cooldown(int start, int defaultValue) {
+    public TickingCooldown(int start, int defaultValue) {
         this.ticks = start;
         this.defaultValue = defaultValue;
     }
