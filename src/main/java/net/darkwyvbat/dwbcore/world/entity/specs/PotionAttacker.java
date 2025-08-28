@@ -10,7 +10,7 @@ public interface PotionAttacker extends TacticalGearAgent {
 
     boolean hasAttackPotions();
 
-    public Set<Holder<MobEffect>> getAvailableAttackEffects();
+    Set<Holder<MobEffect>> getAvailableAttackEffects();
 
     void preparePotionAttack(Holder<MobEffect> effect, EquipmentSlot slot);
 }
