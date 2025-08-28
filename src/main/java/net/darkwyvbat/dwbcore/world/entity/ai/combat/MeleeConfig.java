@@ -1,8 +1,8 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.combat;
 
-public record MeleeConfig(double speed, double maxDistSqr, int cd) {
+public record MeleeConfig(double speed, int attackCD) {
 
-    public static MeleeConfig fromRanges(double speed, double maxDist, int cd) {
-        return new MeleeConfig(speed, maxDist * maxDist, cd);
+    public static MeleeConfig fromRanges(double speed, int attackCD) {
+        return new MeleeConfig(speed, attackCD);
     }
 }

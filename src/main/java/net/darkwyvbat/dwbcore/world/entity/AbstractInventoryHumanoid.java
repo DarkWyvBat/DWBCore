@@ -1,13 +1,18 @@
 package net.darkwyvbat.dwbcore.world.entity;
 
+import net.darkwyvbat.dwbcore.tag.DwbItemTags;
 import net.darkwyvbat.dwbcore.world.entity.ai.WeaponActions;
 import net.darkwyvbat.dwbcore.world.entity.inventory.*;
+import net.darkwyvbat.dwbcore.world.entity.specs.OmniWarrior;
+import net.darkwyvbat.dwbcore.world.entity.specs.PotionAttacker;
+import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.npc.InventoryCarrier;
@@ -24,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity implements InventoryUser {
+public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity implements InventoryUser, OmniWarrior, PotionAttacker {
 
     protected final HumanoidInventoryManager inventoryManager;
     public boolean shouldRevisionItems = true, shouldConsumeNow = false;
@@ -47,7 +52,7 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
     protected void customServerAiStep(ServerLevel serverLevel) {
         super.customServerAiStep(serverLevel);
         if (tickCount % 64 == 0)
-            this.wantedItems = inspectItemEntities(this.perception.getLastScan().itemsAround());
+            wantedItems = inspectItemEntities(perception.getLastScan().itemsAround());
 
         for (ItemEntity item : this.level().getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(ITEM_PICKUP_REACH.x, ITEM_PICKUP_REACH.y, ITEM_PICKUP_REACH.z)))
             if (!item.isRemoved() && !item.getItem().isEmpty() && !item.hasPickUpDelay() && this.wantsToPickUp(serverLevel, item.getItem()))
@@ -68,8 +73,8 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
 
     @Override
     public void containerChanged(Container container) {
-        this.inventoryManager.updateInventoryEntries();
-        this.shouldRevisionItems = true;
+        inventoryManager.updateInventoryEntries();
+        shouldRevisionItems = true;
     }
 
     @Override
@@ -170,30 +175,9 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
     }
 
     public void prepareForFight() {
-        setUpWeapon();
+        prepareMelee();
         setUpArmor();
-        setUpShield();
-    }
-
-    public void setUpWeapon() {
-        if (inventoryManager.entryNotEmpty(InventoryItemCategory.MELEE_WEAPON))
-            setUpMeleeWeapon();
-        else
-            setUpRangedWeapon();
-    }
-
-    public int setUpMeleeWeapon() {
-        if (inventoryManager.entryNotEmpty(InventoryItemCategory.MELEE_WEAPON))
-            return equipFromInventory(EquipmentSlot.MAINHAND, inventoryManager.getFirstIndexInEntry(InventoryItemCategory.MELEE_WEAPON));
-
-        return InventoryManager.INVALID_INDEX;
-    }
-
-    public int setUpRangedWeapon() {
-        if (inventoryManager.entryNotEmpty(InventoryItemCategory.RANGED_WEAPON))
-            return equipFromInventory(EquipmentSlot.MAINHAND, inventoryManager.getFirstIndexInEntry(InventoryItemCategory.RANGED_WEAPON));
-
-        return InventoryManager.INVALID_INDEX;
+        prepareForAttackBlocking();
     }
 
     public void setUpArmor() {
@@ -211,11 +195,6 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
                 equippedInThisTick.add(slot);
             }
         }
-    }
-
-    public void performRangedAttack(Entity target, InteractionHand hand, float charge) {
-        ItemStack item = getItemInHand(hand);
-        WeaponActions.get(item).ifPresent(a -> a.use(this, item, target, charge));
     }
 
     protected void completeUsingItem() {
@@ -238,11 +217,6 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
         return newInvIndex;
     }
 
-    public void setUpShield() {
-        if (!inventoryManager.getInventoryEntry(InventoryItemCategory.SHIELD_OR_SUPPORT).isEmpty())
-            equipFromInventory(EquipmentSlot.OFFHAND, inventoryManager.getFirstIndexInEntry(InventoryItemCategory.SHIELD_OR_SUPPORT));
-    }
-
     @Override
     public void disarm() {
         for (EquipmentSlot equipmentSlot : EquipmentSlotGroup.ARMOR)
@@ -253,14 +227,6 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
     public void freeHands() {
         equipFromInventory(EquipmentSlot.MAINHAND, InventoryManager.INVALID_INDEX);
         equipFromInventory(EquipmentSlot.OFFHAND, InventoryManager.INVALID_INDEX);
-    }
-
-    public boolean hasMeleeWeapon() {
-        return inventoryManager.entryNotEmpty(InventoryItemCategory.MELEE_WEAPON);
-    }
-
-    public boolean hasRangedWeapon() {
-        return inventoryManager.entryNotEmpty(InventoryItemCategory.RANGED_WEAPON);
     }
 
     public boolean canHeal() {
@@ -305,4 +271,84 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
     public List<ItemEntity> getWantedItems() {
         return this.wantedItems;
     }
+
+
+    @Override
+    public boolean hasAttackPotions() {
+        return inventoryManager.entryNotEmpty(InventoryItemCategory.ATTACK_POTION);
+    }
+
+    //TODO move to child
+    @Override
+    public Set<Holder<MobEffect>> getAvailableAttackEffects() {
+        return inventoryManager.getAvailablePotionEffectsWithIndices().keySet();
+    }
+
+    @Override
+    public void preparePotionAttack(Holder<MobEffect> effect, EquipmentSlot slot) {
+        equipFromInventory(slot, inventoryManager.getPotionWithEffectIndex(effect));
+    }
+
+    @Override
+    public boolean hasMelee() {
+        return inventoryManager.entryNotEmpty(InventoryItemCategory.MELEE_WEAPON);
+    }
+
+    @Override
+    public boolean readyForMelee() {
+        return getItemInHand(InteractionHand.MAIN_HAND).is(DwbItemTags.MELEE_WEAPONS);
+    }
+
+    @Override
+    public void prepareMelee() {
+        equipFromInventory(EquipmentSlot.MAINHAND, inventoryManager.getFirstIndexInEntry(InventoryItemCategory.MELEE_WEAPON));
+    }
+
+    @Override
+    public boolean hasRanged() {
+        return inventoryManager.entryNotEmpty(InventoryItemCategory.RANGED_WEAPON);
+    }
+
+    @Override
+    public boolean readyForRanged() {
+        return getItemInHand(InteractionHand.MAIN_HAND).is(DwbItemTags.RANGED_WEAPONS);
+    }
+
+    @Override
+    public void prepareRanged() {
+        equipFromInventory(EquipmentSlot.MAINHAND, inventoryManager.getFirstIndexInEntry(InventoryItemCategory.RANGED_WEAPON));
+    }
+
+    @Override
+    public void performRangedAttack(Entity target, InteractionHand hand, float charge) {
+        ItemStack item = getItemInHand(hand);
+        WeaponActions.get(item).ifPresent(a -> a.use(this, item, target, charge));
+    }
+
+    @Override
+    public boolean hasAttackBlocker() {
+        return inventoryManager.entryNotEmpty(InventoryItemCategory.SHIELD_OR_SUPPORT);
+    }
+
+    @Override
+    public boolean readyForBlockAttack() {
+        return useItemCD.isReady() && getItemInHand(InteractionHand.OFF_HAND).has(DataComponents.BLOCKS_ATTACKS);
+    }
+
+    @Override
+    public void prepareForAttackBlocking() {
+        equipFromInventory(EquipmentSlot.OFFHAND, inventoryManager.getFirstIndexInEntry(InventoryItemCategory.SHIELD_OR_SUPPORT));
+    }
+
+    @Override
+    public void startBlockAttack() {
+        if (readyForBlockAttack())
+            startUsingItem(InteractionHand.OFF_HAND);
+    }
+
+    @Override
+    public void stopBlockAttack() {
+        stopUsingItem();
+    }
+
 }

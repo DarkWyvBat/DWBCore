@@ -1,116 +1,103 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.combat;
 
-import net.darkwyvbat.dwbcore.world.entity.AbstractInventoryHumanoid;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 
-public class CombatState {
-    private final AbstractInventoryHumanoid mob;
+public class CombatState implements CombatStateView {
+    private final Mob attacker;
     private final CombatConfig config;
-    private final CombatCooldowns cooldowns;
+    private final CombatCooldowns cooldowns = new CombatCooldowns();
 
     private LivingEntity target;
     private double distanceSqr;
     private boolean canSeeTarget;
     private int seeTime;
-    private boolean retreating;
-    private CombatStrategy prevStrategy;
-    private CombatStrategy nextStrategy;
 
-    public CombatState(AbstractInventoryHumanoid mob, CombatConfig config, CombatCooldowns cooldowns) {
-        this.mob = mob;
+    public CombatState(Mob attacker, CombatConfig config) {
+        this.attacker = attacker;
         this.config = config;
-        this.cooldowns = cooldowns;
-    }
-
-    public LivingEntity getTarget() {
-        return target;
     }
 
     public void setTarget(LivingEntity target) {
         this.target = target;
     }
 
-    public double getDistanceSqr() {
-        return distanceSqr;
+    public void setCanSeeTarget(boolean canSeeTarget) {
+        this.canSeeTarget = canSeeTarget;
     }
 
     public void setDistanceSqr(double distanceSqr) {
         this.distanceSqr = distanceSqr;
     }
 
-    public boolean canSeeTarget() {
-        return canSeeTarget;
-    }
-
-    public void setCanSeeTarget(boolean canSeeTarget) {
-        this.canSeeTarget = canSeeTarget;
-    }
-
-    public int getSeeTime() {
-        return seeTime;
-    }
-
     public void setSeeTime(int seeTime) {
         this.seeTime = seeTime;
     }
 
-    public boolean isRetreating() {
-        return retreating;
+    public void startPathCooldown(int v) {
+        cooldowns.path().set(v, timeNow());
     }
 
-    public void setRetreating(boolean retreating) {
-        this.retreating = retreating;
+    public void startMeleeCooldown(int v) {
+        cooldowns.melee().set(v, timeNow());
     }
 
-    public AbstractInventoryHumanoid getMob() {
-        return mob;
+    public void startRangedCooldown(int v) {
+        cooldowns.ranged().set(v, timeNow());
     }
 
+    @Override
+    public LivingEntity getTarget() {
+        return target;
+    }
+
+    @Override
+    public double getDistanceSqr() {
+        return distanceSqr;
+    }
+
+    @Override
+    public boolean canSeeTarget() {
+        return canSeeTarget;
+    }
+
+    @Override
+    public int getSeeTime() {
+        return seeTime;
+    }
+
+    @Override
+    public Mob getAttacker() {
+        return attacker;
+    }
+
+    @Override
     public CombatConfig getConfig() {
         return config;
     }
 
+    @Override
+    public long timeNow() {
+        return attacker.level().getGameTime();
+    }
+
+    @Override
+    public boolean isPathCooldownReady() {
+        return cooldowns.path().isReady(timeNow());
+    }
+
+    @Override
     public CombatCooldowns getCooldowns() {
         return cooldowns;
     }
 
-    public boolean isPathCooldownReady() {
-        return cooldowns.path().isReady();
-    }
-
+    @Override
     public boolean isMeleeCooldownReady() {
-        return cooldowns.melee().isReady();
+        return cooldowns.melee().isReady(timeNow());
     }
 
+    @Override
     public boolean isRangedCooldownReady() {
-        return cooldowns.ranged().isReady();
-    }
-
-    public void startPathCooldown(int v) {
-        cooldowns.path().set(v);
-    }
-
-    public void startMeleeCooldown(int v) {
-        cooldowns.melee().set(v);
-    }
-
-    public void startRangedCooldown(int v) {
-        cooldowns.ranged().set(v);
-    }
-
-    public CombatStrategy getPrevStrategy() {
-        return prevStrategy;
-    }
-
-    public void setPrevStrategy(CombatStrategy prevStrategy) {
-        this.prevStrategy = prevStrategy;
-    }
-
-    public CombatStrategy getNextStrategy() {
-        return nextStrategy;
-    }
-
-    public void setNextStrategy(CombatStrategy nextStrategy) {
-        this.nextStrategy = nextStrategy;
+        return cooldowns.ranged().isReady(timeNow());
     }
 }

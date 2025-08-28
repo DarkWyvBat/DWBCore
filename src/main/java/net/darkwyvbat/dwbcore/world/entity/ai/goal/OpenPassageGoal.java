@@ -2,7 +2,7 @@ package net.darkwyvbat.dwbcore.world.entity.ai.goal;
 
 import com.google.common.collect.Sets;
 import net.darkwyvbat.dwbcore.tag.DwbBlockTags;
-import net.darkwyvbat.dwbcore.util.time.Cooldown;
+import net.darkwyvbat.dwbcore.util.time.TickingCooldown;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;
@@ -34,7 +34,7 @@ public class OpenPassageGoal extends Goal {
 
     protected final Mob mob;
     private final Set<GlobalPos> toClose = Sets.newHashSet();
-    private final Cooldown cd = new Cooldown(0);
+    private final TickingCooldown cd = new TickingCooldown(0);
 
     public OpenPassageGoal(Mob mob) {
         this.mob = mob;

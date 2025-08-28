@@ -1,8 +1,7 @@
 package net.darkwyvbat.dwbcore.world.entity;
 
-import net.darkwyvbat.dwbcore.tag.DwbItemTags;
 import net.darkwyvbat.dwbcore.util.PoorRandom;
-import net.darkwyvbat.dwbcore.util.time.Cooldown;
+import net.darkwyvbat.dwbcore.util.time.TickingCooldown;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -52,7 +51,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     public static final ResourceLocation SHIELD_ATTRIBUTE_ID = INFO.idOf("shield");
     public static final AttributeModifier SHIELD_KNOCKBACK_RESISTANCE = new AttributeModifier(SHIELD_ATTRIBUTE_ID, 0.8, AttributeModifier.Operation.ADD_VALUE);
 
-    protected Cooldown useItemCD = new Cooldown(0);
+    protected TickingCooldown useItemCD = new TickingCooldown(0);
 
     protected AbstractHumanoidEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
@@ -74,7 +73,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     @Override
     protected void readAdditionalSaveData(ValueInput valueInput) {
         super.readAdditionalSaveData(valueInput);
-        this.setMobState(MobStates.fromInt(valueInput.getIntOr("MobState", 0)));
+        setMobState(MobStates.fromInt(valueInput.getIntOr("MobState", 0)));
     }
 
     public static AttributeSupplier.Builder createHumanoidAttributes() {
@@ -85,8 +84,8 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     @Override
     public void aiStep() {
         super.aiStep();
-        this.updateState(getMobState());
-        this.updateSwingTime();
+        updateState(getMobState());
+        updateSwingTime();
     }
 
     public MobStates getMobState() {
@@ -95,7 +94,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
 
     public void setMobState(MobStates state) {
         entityData.set(DATA_MOB_STATE, state.getValue());
-        this.updateState(getMobState());
+        updateState(getMobState());
     }
 
     public void updateState(MobStates state) {
@@ -109,7 +108,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     }
 
     public void standUpIfSitting() {
-        if (this.getMobState() == MobStates.SITTING)
+        if (getMobState() == MobStates.SITTING)
             setMobState(MobStates.STANDING);
     }
 
@@ -146,7 +145,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
 
     @Override
     public void updateSwimming() {
-        if (!this.level().isClientSide)
+        if (!level().isClientSide)
             this.setSwimming(this.isEffectiveAi() && this.isUnderWater());
     }
 
@@ -155,7 +154,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
         return this.isSwimming();
     }
 
-    public Cooldown getUseItemCD() {
+    public TickingCooldown getUseItemCD() {
         return useItemCD;
     }
 
@@ -247,7 +246,6 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
         return getHealth() >= getMaxHealth();
     }
 
-    //TODO maybe combat
     public float getHealthPercent() {
         return this.getHealth() / this.getMaxHealth();
     }
@@ -280,10 +278,6 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
         };
         EntityDimensions scaled = dimension.scale(getDimScale());
         return scaled.withEyeHeight(scaled.eyeHeight() * getEyeHeightModifier());
-    }
-
-    public boolean holdRangedWeapon() {
-        return getItemInHand(InteractionHand.MAIN_HAND).is(DwbItemTags.RANGED_WEAPONS);
     }
 
     public abstract void disarm();

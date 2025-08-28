@@ -1,34 +1,39 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.combat.strategy;
 
+import net.darkwyvbat.dwbcore.world.entity.AbstractInventoryHumanoid;
 import net.darkwyvbat.dwbcore.world.entity.ai.combat.CombatState;
+import net.darkwyvbat.dwbcore.world.entity.ai.combat.CombatStateView;
 import net.darkwyvbat.dwbcore.world.entity.ai.combat.CombatStrategy;
 import net.darkwyvbat.dwbcore.world.entity.ai.nav.MovementHelper;
 import net.minecraft.world.phys.Vec3;
 
 public class HealStrategy extends CombatStrategy {
+    private final AbstractInventoryHumanoid mob;
+
+    public HealStrategy(AbstractInventoryHumanoid mob) {
+        this.mob = mob;
+    }
 
     @Override
-    public void stop(CombatState state) {
-        state.getMob().shouldConsumeNow = false;
+    public void stop(CombatState state, CombatStrategy nextStrategy) {
+        mob.shouldConsumeNow = false;
     }
 
     @Override
     public void tick(CombatState state) {
         if (state.getDistanceSqr() < 49.0) {
-            state.getMob().getNavigation().stop();
-            Vec3 dir = MovementHelper.calcRetreat(state.getMob(),state.getTarget());
-            if (MovementHelper.isSafeRetreat(state.getMob(), dir, 1.4)) {
-                MovementHelper.doRetreat(state.getMob(), dir);
-                state.setRetreating(true);
-                state.getCooldowns().retreat().set(5);
+            mob.getNavigation().stop();
+            Vec3 dir = MovementHelper.calcRetreat(mob, state.getTarget());
+            if (MovementHelper.isSafeRetreat(mob, dir, 1.4)) {
+                MovementHelper.doRetreat(mob, dir);
             } else
-                state.getMob().shouldConsumeNow = true;
+                mob.shouldConsumeNow = true;
         } else
-            state.getMob().shouldConsumeNow = true;
+            mob.shouldConsumeNow = true;
     }
 
     @Override
-    public boolean canStart(CombatState state) {
-        return (state.getMob().getHealthPercent() < 0.5F || state.getPrevStrategy() instanceof HealStrategy) && state.getMob().setUpForHeal() && state.getMob().getHealthPercent() < 0.9;
+    public boolean canStart(CombatStateView state, CombatStrategy currentStrategy) {
+        return (mob.getHealthPercent() < 0.5F || currentStrategy instanceof HealStrategy) && mob.getHealthPercent() < 0.9F && mob.setUpForHeal();
     }
 }

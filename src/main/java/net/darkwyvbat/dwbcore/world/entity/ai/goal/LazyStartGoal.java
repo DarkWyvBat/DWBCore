@@ -1,11 +1,11 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.goal;
 
-import net.darkwyvbat.dwbcore.util.time.Cooldown;
+import net.darkwyvbat.dwbcore.util.time.TickingCooldown;
 import net.minecraft.world.entity.ai.goal.Goal;
 
 public abstract class LazyStartGoal extends Goal {
     private final int checkInterval;
-    private final Cooldown cd = new Cooldown();
+    private final TickingCooldown cd = new TickingCooldown();
 
     public LazyStartGoal(int checkInterval) {
         this.checkInterval = checkInterval;

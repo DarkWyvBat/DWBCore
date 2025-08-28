@@ -1,6 +1,6 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.goal;
 
-import net.darkwyvbat.dwbcore.util.time.Cooldown;
+import net.darkwyvbat.dwbcore.util.time.TickingCooldown;
 import net.darkwyvbat.dwbcore.world.entity.AbstractInventoryHumanoid;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -13,7 +13,7 @@ public class GoToWantedItemGoal extends Goal {
     protected ItemEntity item;
     protected int ticks;
     protected double speed;
-    protected final Cooldown cd = new Cooldown(0);
+    protected final TickingCooldown cd = new TickingCooldown();
 
     public GoToWantedItemGoal(AbstractInventoryHumanoid mob, double speedModifier) {
         this.mob = mob;

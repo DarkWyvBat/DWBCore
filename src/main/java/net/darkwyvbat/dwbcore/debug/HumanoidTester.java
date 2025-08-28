@@ -4,7 +4,9 @@ import net.darkwyvbat.dwbcore.util.time.Timeline;
 import net.darkwyvbat.dwbcore.world.entity.AbstractHumanoidEntity;
 import net.darkwyvbat.dwbcore.world.entity.AbstractInventoryHumanoid;
 import net.darkwyvbat.dwbcore.world.entity.GrowableMob;
+import net.darkwyvbat.dwbcore.world.entity.ai.combat.CombatStrategyManager;
 import net.darkwyvbat.dwbcore.world.entity.ai.combat.DwbCombatConfigs;
+import net.darkwyvbat.dwbcore.world.entity.ai.combat.strategy.*;
 import net.darkwyvbat.dwbcore.world.entity.ai.goal.*;
 import net.darkwyvbat.dwbcore.world.entity.ai.nav.HumanoidLikeMoveControl;
 import net.darkwyvbat.dwbcore.world.entity.ai.nav.HumanoidLikePathNavigation;
@@ -37,8 +39,8 @@ public class HumanoidTester extends AbstractInventoryHumanoid implements Growabl
 
     public HumanoidTester(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
-        this.moveControl = new HumanoidLikeMoveControl(this);
-        this.navigation = new HumanoidLikePathNavigation(this, level);
+        moveControl = new HumanoidLikeMoveControl(this);
+        navigation = new HumanoidLikePathNavigation(this, level);
         defineTimeline();
         timeline.init();
     }
@@ -90,7 +92,15 @@ public class HumanoidTester extends AbstractInventoryHumanoid implements Growabl
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        HumanoidCombatGoal combatGoal = new HumanoidCombatGoal(this, DwbCombatConfigs.HUMANOID_BASE_CONFIG);
+        CombatStrategyManager strategyManager =  new CombatStrategyManager.Builder()
+                .add(new HealStrategy(this))
+                .add(new PotionAttackStrategy(this))
+                .add(new KitingStrategy(this))
+                .add(new RangedStrategy(this))
+                .defaultStrategy(new MeleeStrategy(this))
+                .changeInterval(10)
+                .build();
+        HumanoidCombatGoal combatGoal = new HumanoidCombatGoal(this, DwbCombatConfigs.HUMANOID_BASE_CONFIG, strategyManager);
         this.goalSelector.addGoal(1, new OpenPassageGoal(this));
         this.goalSelector.addGoal(2, combatGoal);
         this.goalSelector.addGoal(3, new GoToWantedItemGoal(this, 1.2));

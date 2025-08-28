@@ -1,6 +1,6 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.goal;
 
-import net.darkwyvbat.dwbcore.util.time.Cooldown;
+import net.darkwyvbat.dwbcore.util.time.TickingCooldown;
 import net.darkwyvbat.dwbcore.world.entity.AbstractInventoryHumanoid;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffects;
@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
 public class ConsumeGoal extends Goal {
     protected final AbstractInventoryHumanoid mob;
     protected ItemStack item;
-    protected Cooldown cd = new Cooldown(20);
+    protected TickingCooldown cd = new TickingCooldown(20);
     boolean needHeal, isDrowning, isBurning;
 
     public ConsumeGoal(AbstractInventoryHumanoid mob) {

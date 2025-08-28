@@ -2,18 +2,18 @@ package net.darkwyvbat.dwbcore.util.time;
 
 public class TickingCooldown {
 
-    protected final int defaultValue;
-    protected int ticks;
+    protected final long defaultValue;
+    protected long ticks;
 
     public TickingCooldown() {
         this(0, 0);
     }
 
-    public TickingCooldown(int defaultValue) {
+    public TickingCooldown(long defaultValue) {
         this(0, defaultValue);
     }
 
-    public TickingCooldown(int start, int defaultValue) {
+    public TickingCooldown(long start, long defaultValue) {
         this.ticks = start;
         this.defaultValue = defaultValue;
     }
@@ -30,11 +30,11 @@ public class TickingCooldown {
         return ticks <= 0;
     }
 
-    public void set(int v) {
+    public void set(long v) {
         set(v, isReady());
     }
 
-    public void set(int v, boolean force) {
+    public void set(long v, boolean force) {
         if (force) ticks = v;
     }
 
@@ -42,11 +42,11 @@ public class TickingCooldown {
         ticks = defaultValue;
     }
 
-    public int getTicks() {
+    public long getTicks() {
         return ticks;
     }
 
-    public int getDefaultValue() {
+    public long getDefaultValue() {
         return defaultValue;
     }
 }

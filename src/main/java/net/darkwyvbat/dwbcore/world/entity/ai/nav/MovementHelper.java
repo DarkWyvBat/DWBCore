@@ -2,10 +2,7 @@ package net.darkwyvbat.dwbcore.world.entity.ai.nav;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.AABB;
@@ -14,16 +11,16 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public final class MovementHelper {
-    public static Vec3 calcRetreat(PathfinderMob mob, Entity target) {
+    public static Vec3 calcRetreat(Mob mob, Entity target) {
         Vec3 dir = mob.position().subtract(target.position()).normalize();
         return dir.lengthSqr() < 0.01 ? Vec3.directionFromRotation(0, mob.getYRot() + 180.0F) : dir;
     }
 
-    public static void doRetreat(PathfinderMob mob, Vec3 dir) {
+    public static void doRetreat(Mob mob, Vec3 dir) {
         doRetreat(mob, dir, mob.getSpeed());
     }
 
-    public static void doRetreat(PathfinderMob mob, Vec3 dir, double speed) {
+    public static void doRetreat(Mob mob, Vec3 dir, double speed) {
         mob.move(MoverType.SELF, dir.scale(speed));
     }
 
@@ -44,11 +41,11 @@ public final class MovementHelper {
     }
 
 
-    public static boolean tryPathToEntity(PathfinderMob mob, Entity entity) {
+    public static boolean tryPathToEntity(Mob mob, Entity entity) {
         return tryPathToEntity(mob, entity, 1.0);
     }
 
-    public static boolean tryPathToEntity(PathfinderMob mob, Entity entity, double speed) {
+    public static boolean tryPathToEntity(Mob mob, Entity entity, double speed) {
         Path path = mob.getNavigation().createPath(entity, 0);
         if (path == null) return false;
         return mob.getNavigation().moveTo(path, speed);
