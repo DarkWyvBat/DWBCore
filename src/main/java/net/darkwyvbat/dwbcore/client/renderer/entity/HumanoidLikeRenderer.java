@@ -14,7 +14,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,72 +28,48 @@ public abstract class HumanoidLikeRenderer<T extends AbstractHumanoidEntity, S e
 
     @Override
     protected HumanoidModel.@NotNull ArmPose getArmPose(T entity, HumanoidArm humanoidArm) {
-        ItemStack itemStack = entity.getItemInHand(InteractionHand.MAIN_HAND);
-        ItemStack itemStack2 = entity.getItemInHand(InteractionHand.OFF_HAND);
-        HumanoidModel.ArmPose armPose = getArmPose(entity, itemStack, InteractionHand.MAIN_HAND);
-        HumanoidModel.ArmPose armPose2 = getArmPose(entity, itemStack2, InteractionHand.OFF_HAND);
-        if (armPose.isTwoHanded()) {
-            armPose2 = itemStack2.isEmpty() ? HumanoidModel.ArmPose.EMPTY : HumanoidModel.ArmPose.ITEM;
-        }
+        ItemStack mainHandItem = entity.getItemInHand(InteractionHand.MAIN_HAND);
+        ItemStack offHandItem = entity.getItemInHand(InteractionHand.OFF_HAND);
+        HumanoidModel.ArmPose mainHandPose = getArmPose(entity, mainHandItem, InteractionHand.MAIN_HAND);
+        HumanoidModel.ArmPose offHandPose = getArmPose(entity, offHandItem, InteractionHand.OFF_HAND);
+        if (mainHandPose.isTwoHanded())
+            offHandPose = offHandItem.isEmpty() ? HumanoidModel.ArmPose.EMPTY : HumanoidModel.ArmPose.ITEM;
 
-        return entity.getMainArm() == humanoidArm ? armPose : armPose2;
+        return entity.getMainArm() == humanoidArm ? mainHandPose : offHandPose;
     }
 
     protected static HumanoidModel.ArmPose getArmPose(AbstractHumanoidEntity entity, ItemStack itemStack, InteractionHand interactionHand) {
-        if (itemStack.isEmpty()) {
+        if (itemStack.isEmpty())
             return HumanoidModel.ArmPose.EMPTY;
-        } else if (!entity.swinging && itemStack.is(Items.CROSSBOW) && CrossbowItem.isCharged(itemStack)) {
+        if (!entity.swinging && itemStack.is(Items.CROSSBOW) && CrossbowItem.isCharged(itemStack))
             return HumanoidModel.ArmPose.CROSSBOW_HOLD;
-        } else {
-            if (entity.getUsedItemHand() == interactionHand && entity.getUseItemRemainingTicks() > 0) {
-                ItemUseAnimation itemUseAnimation = itemStack.getUseAnimation();
-                if (itemUseAnimation == ItemUseAnimation.BLOCK) {
-                    return HumanoidModel.ArmPose.BLOCK;
-                }
 
-                if (itemUseAnimation == ItemUseAnimation.BOW) {
-                    return HumanoidModel.ArmPose.BOW_AND_ARROW;
-                }
-
-                if (itemUseAnimation == ItemUseAnimation.SPEAR) {
-                    return HumanoidModel.ArmPose.THROW_SPEAR;
-                }
-
-                if (itemUseAnimation == ItemUseAnimation.CROSSBOW) {
-                    return HumanoidModel.ArmPose.CROSSBOW_CHARGE;
-                }
-
-                if (itemUseAnimation == ItemUseAnimation.SPYGLASS) {
-                    return HumanoidModel.ArmPose.SPYGLASS;
-                }
-
-                if (itemUseAnimation == ItemUseAnimation.TOOT_HORN) {
-                    return HumanoidModel.ArmPose.TOOT_HORN;
-                }
-
-                if (itemUseAnimation == ItemUseAnimation.BRUSH) {
-                    return HumanoidModel.ArmPose.BRUSH;
-                }
-            }
-
-            return HumanoidModel.ArmPose.ITEM;
+        if (entity.getUsedItemHand() == interactionHand && entity.getUseItemRemainingTicks() > 0) {
+            return switch (itemStack.getUseAnimation()) {
+                case BLOCK -> HumanoidModel.ArmPose.BLOCK;
+                case BOW -> HumanoidModel.ArmPose.BOW_AND_ARROW;
+                case SPEAR -> HumanoidModel.ArmPose.THROW_SPEAR;
+                case CROSSBOW -> HumanoidModel.ArmPose.CROSSBOW_CHARGE;
+                case SPYGLASS -> HumanoidModel.ArmPose.SPYGLASS;
+                case TOOT_HORN -> HumanoidModel.ArmPose.TOOT_HORN;
+                case BRUSH -> HumanoidModel.ArmPose.BRUSH;
+                default -> HumanoidModel.ArmPose.ITEM;
+            };
         }
+
+        return HumanoidModel.ArmPose.ITEM;
     }
 
     @Override
     protected void setupRotations(S state, PoseStack poseStack, float f, float g) {
-        float h = state.swimAmount;
-        float i = state.xRot;
-        if (h > 0.0F) {
-            super.setupRotations(state, poseStack, f, g);
-            float jx = state.isInWater ? -90.0F - i : -90.0F;
-            float k = Mth.lerp(h, 0.0F, jx);
-            poseStack.mulPose(Axis.XP.rotationDegrees(k));
+        super.setupRotations(state, poseStack, f, g);
+        if (state.swimAmount > 0.0F) {
+            float swimPitch = state.isInWater ? -90.0F - state.xRot : -90.0F;
+            float lerpedPitch = Mth.lerp(state.swimAmount, 0.0F, swimPitch);
+            poseStack.mulPose(Axis.XP.rotationDegrees(lerpedPitch));
             if (state.isVisuallySwimming) {
                 poseStack.translate(0.0F, -1.0F, 0.3F);
             }
-        } else {
-            super.setupRotations(state, poseStack, f, g);
         }
         if (state.isSitting) {
             poseStack.translate(0.0F, -0.55F, 0.0F);
