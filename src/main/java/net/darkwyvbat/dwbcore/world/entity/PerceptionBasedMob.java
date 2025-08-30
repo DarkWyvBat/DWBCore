@@ -13,7 +13,7 @@ public abstract class PerceptionBasedMob extends PathfinderMob {
 
     protected PerceptionCenter perception;
 
-    protected PerceptionBasedMob(EntityType<? extends PathfinderMob> entityType, Level level) {
+    protected PerceptionBasedMob(EntityType<? extends PerceptionBasedMob> entityType, Level level) {
         super(entityType, level);
         perception = createPerception();
     }

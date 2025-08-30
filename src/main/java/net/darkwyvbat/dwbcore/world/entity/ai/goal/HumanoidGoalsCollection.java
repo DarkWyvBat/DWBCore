@@ -3,34 +3,17 @@ package net.darkwyvbat.dwbcore.world.entity.ai.goal;
 import net.darkwyvbat.dwbcore.util.PoorRandom;
 import net.darkwyvbat.dwbcore.world.entity.AbstractHumanoidEntity;
 import net.darkwyvbat.dwbcore.world.entity.AbstractInventoryHumanoid;
+import net.darkwyvbat.dwbcore.world.entity.CombatantInventoryHumanoid;
 import net.darkwyvbat.dwbcore.world.entity.MobStates;
 import net.darkwyvbat.dwbcore.world.entity.ai.perception.ActivityState;
 import net.darkwyvbat.dwbcore.world.entity.inventory.InventoryItemCategory;
 import net.minecraft.world.entity.ai.goal.Goal;
 
 public class HumanoidGoalsCollection {
-    public static class StandUpGoal extends Goal {
-        protected final AbstractHumanoidEntity mob;
-
-        public StandUpGoal(AbstractHumanoidEntity mob) {
-            this.mob = mob;
-        }
-
-        @Override
-        public boolean canUse() {
-            return mob.getMobState() == MobStates.SITTING && (mob.getDeltaMovement().length() > 0.1 || !mob.getNavigation().isDone() || PoorRandom.quickProb(0.002F) || mob.getPerception().getProfile().getActivityLevel() > 15 || !mob.onGround());
-        }
-
-        @Override
-        public void start() {
-            mob.standUpIfSitting();
-        }
-    }
-
     public static class BeOnGuardGoal extends Goal {
-        protected final AbstractInventoryHumanoid mob;
+        protected final CombatantInventoryHumanoid mob;
 
-        public BeOnGuardGoal(AbstractInventoryHumanoid mob) {
+        public BeOnGuardGoal(CombatantInventoryHumanoid mob) {
             this.mob = mob;
         }
 
@@ -85,7 +68,7 @@ public class HumanoidGoalsCollection {
 
         @Override
         public boolean mainCanUse() {
-            return mob.getNavigation().isDone() && mob.getPerception().getProfile().getState().isLess(ActivityState.REGULAR) && mob.onGround();
+            return mob.getNavigation().isDone() && mob.getPerception().getProfile().getState().isLess(ActivityState.REGULAR) && mob.onGround() && !mob.isSleeping();
         }
 
         @Override

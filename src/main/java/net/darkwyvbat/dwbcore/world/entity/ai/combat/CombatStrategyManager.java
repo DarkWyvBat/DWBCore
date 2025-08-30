@@ -64,6 +64,10 @@ public class CombatStrategyManager {
         return state;
     }
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
     public static class Builder {
         private final List<CombatStrategy> strategies = new ArrayList<>();
         private CombatStrategy defaultStrategy;

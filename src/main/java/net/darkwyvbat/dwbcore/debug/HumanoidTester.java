@@ -2,7 +2,7 @@ package net.darkwyvbat.dwbcore.debug;
 
 import net.darkwyvbat.dwbcore.util.time.Timeline;
 import net.darkwyvbat.dwbcore.world.entity.AbstractHumanoidEntity;
-import net.darkwyvbat.dwbcore.world.entity.AbstractInventoryHumanoid;
+import net.darkwyvbat.dwbcore.world.entity.CombatantInventoryHumanoid;
 import net.darkwyvbat.dwbcore.world.entity.GrowableMob;
 import net.darkwyvbat.dwbcore.world.entity.ai.combat.CombatStrategyManager;
 import net.darkwyvbat.dwbcore.world.entity.ai.combat.DwbCombatConfigs;
@@ -20,7 +20,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -30,14 +29,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-public class HumanoidTester extends AbstractInventoryHumanoid implements GrowableMob<HumanoidTester> {
+public class HumanoidTester extends CombatantInventoryHumanoid implements GrowableMob<HumanoidTester> {
 
     private static final EntityDataAccessor<Boolean> DATA_BABY_ID = SynchedEntityData.defineId(HumanoidTester.class, EntityDataSerializers.BOOLEAN);
     private static final AttributeModifier SPEED_MODIFIER_BABY = new AttributeModifier(ResourceLocation.withDefaultNamespace("baby"), 0.2F, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
 
     private final Timeline<HumanoidTester> timeline = new Timeline<>(this);
 
-    public HumanoidTester(EntityType<? extends PathfinderMob> entityType, Level level) {
+    public HumanoidTester(EntityType<? extends HumanoidTester> entityType, Level level) {
         super(entityType, level);
         moveControl = new HumanoidLikeMoveControl(this);
         navigation = new HumanoidLikePathNavigation(this, level);
@@ -92,7 +91,7 @@ public class HumanoidTester extends AbstractInventoryHumanoid implements Growabl
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        CombatStrategyManager strategyManager =  new CombatStrategyManager.Builder()
+        CombatStrategyManager strategyManager = CombatStrategyManager.builder()
                 .add(new HealStrategy(this))
                 .add(new PotionAttackStrategy(this))
                 .add(new KitingStrategy(this))
@@ -110,8 +109,6 @@ public class HumanoidTester extends AbstractInventoryHumanoid implements Growabl
         this.goalSelector.addGoal(6, new LookAtEntityGoal(this, 6.0F));
         this.goalSelector.addGoal(6, new RandomLookAroundGoal(this));
         this.goalSelector.addGoal(6, new ConsumeGoal(this));
-        this.goalSelector.addGoal(6, new HumanoidGoalsCollection.StandUpGoal(this));
-        this.goalSelector.addGoal(7, new HumanoidGoalsCollection.RandomChillGoal(this, 100));
         this.goalSelector.addGoal(8, new HumanoidGoalsCollection.RandomFreeHandsGoal(this));
         this.goalSelector.addGoal(9, new HumanoidGoalsCollection.RandomDisarm(this, 100));
         this.goalSelector.addGoal(10, new HumanoidGoalsCollection.OptimizeInventory(this));

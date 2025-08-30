@@ -5,9 +5,12 @@ import net.minecraft.world.ContainerListener;
 import net.minecraft.world.entity.npc.InventoryCarrier;
 
 public interface InventoryUser extends InventoryCarrier, ContainerListener {
-    InventoryManager<?> getInventoryManager();
 
     InventoryManager<?> provideInventoryManager();
+
+    InventoryManager<?> getInventoryManager();
+
+    int getInventorySize();
 
     void cleanInventory(int slotsCount);
 }

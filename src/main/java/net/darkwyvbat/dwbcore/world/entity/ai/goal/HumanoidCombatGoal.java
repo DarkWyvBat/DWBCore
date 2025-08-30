@@ -59,7 +59,6 @@ public class HumanoidCombatGoal extends Goal {
         mob.setAggressive(false);
         mob.getNavigation().stop();
         mob.stopUsingItem();
-        mob.shouldConsumeNow = false;
     }
 
     @Override

@@ -22,11 +22,11 @@ public class ConsumeGoal extends Goal {
     public boolean canUse() {
         if (!cd.tick()) return false;
 
-        needHeal = !mob.isFullHealth();
+        needHeal = mob.getHealth() < mob.getMaxHealth();
         isDrowning = (double) mob.getAirSupply() / mob.getMaxAirSupply() < 0.3;
         isBurning = mob.isOnFire();
 
-        if ((needHeal || isDrowning || isBurning) && !mob.isUsingItem() && !mob.isAggressive() || mob.shouldConsumeNow) {
+        if ((needHeal || isDrowning || isBurning) && !mob.isUsingItem() && !mob.isAggressive()) {
             int item;
             if (isBurning && !mob.hasEffect(MobEffects.FIRE_RESISTANCE))
                 item = mob.getInventoryManager().getPotionWithEffectIndex(MobEffects.FIRE_RESISTANCE);

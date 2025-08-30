@@ -1,7 +1,7 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.combat;
 
 import net.darkwyvbat.dwbcore.util.MathUtils;
-import net.darkwyvbat.dwbcore.world.entity.AbstractInventoryHumanoid;
+import net.darkwyvbat.dwbcore.world.entity.AbstractHumanoidEntity;
 import net.darkwyvbat.dwbcore.world.entity.EntityUtils;
 import net.darkwyvbat.dwbcore.world.entity.specs.RangedAttacker;
 import net.minecraft.core.component.DataComponents;
@@ -67,14 +67,14 @@ public final class WeaponCombatUsage {
         });
 
         WEAPON_HANDLERS.put(Items.TRIDENT, (state, item, hand) -> {
-            AbstractInventoryHumanoid mob = (AbstractInventoryHumanoid) state.getAttacker();
+            AbstractHumanoidEntity mob = (AbstractHumanoidEntity) state.getAttacker();
             if (mob.isUsingItem()) {
                 if (!state.canSeeTarget()) {
                     mob.stopUsingItem();
                     return;
                 }
                 if (mob.getTicksUsingItem() > TridentItem.THROW_THRESHOLD_TIME && state.canSeeTarget() && EntityUtils.isFirelineClear(mob, 16, e -> e.getType() == mob.getType())) {
-                    mob.performRangedAttack(state.getTarget(), mob.getUsedItemHand(), 1.0F);
+                    ((RangedAttacker) mob).performRangedAttack(state.getTarget(), mob.getUsedItemHand(), 1.0F);
                     state.startRangedCooldown(state.getConfig().rangedConfig().cd() * 2);
                     mob.stopUsingItem();
                 }

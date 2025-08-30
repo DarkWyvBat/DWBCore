@@ -2,6 +2,7 @@ package net.darkwyvbat.dwbcore.world.entity;
 
 import net.darkwyvbat.dwbcore.util.PoorRandom;
 import net.darkwyvbat.dwbcore.util.time.TickingCooldown;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -53,7 +54,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
 
     protected TickingCooldown useItemCD = new TickingCooldown(0);
 
-    protected AbstractHumanoidEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
+    protected AbstractHumanoidEntity(EntityType<? extends AbstractHumanoidEntity> entityType, Level level) {
         super(entityType, level);
         refreshDimensions();
     }
@@ -88,6 +89,23 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
         updateSwingTime();
     }
 
+    @Override
+    public void startSleeping(BlockPos blockPos) {
+        setMobState(MobStates.SLEEPING);
+        super.startSleeping(blockPos);
+    }
+
+    @Override
+    public void stopSleeping() {
+        setMobState(MobStates.STANDING);
+        super.stopSleeping();
+    }
+
+    @Override
+    public boolean isSleeping() {
+        return super.isSleeping() && getMobState() == MobStates.SLEEPING;
+    }
+
     public MobStates getMobState() {
         return MobStates.fromInt(entityData.get(DATA_MOB_STATE));
     }
@@ -103,13 +121,9 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
             case CROUCHING -> setPose(Pose.CROUCHING);
             case SITTING -> setPose(Pose.SITTING);
             case SWIMMING -> setPose(Pose.SWIMMING);
+            case SLEEPING -> setPose(Pose.SLEEPING);
             default -> setPose(Pose.STANDING);
         }
-    }
-
-    public void standUpIfSitting() {
-        if (getMobState() == MobStates.SITTING)
-            setMobState(MobStates.STANDING);
     }
 
     @Override
@@ -146,7 +160,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     @Override
     public void updateSwimming() {
         if (!level().isClientSide)
-            this.setSwimming(this.isEffectiveAi() && this.isUnderWater());
+            setSwimming(isEffectiveAi() && isUnderWater());
     }
 
     @Override
@@ -161,27 +175,27 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     @Override
     public void startUsingItem(InteractionHand hand) {
         super.startUsingItem(hand);
-        ItemStack itemInHand = this.getItemInHand(hand);
-        if (!this.level().isClientSide && itemInHand.is(Items.SHIELD))
+        ItemStack itemInHand = getItemInHand(hand);
+        if (!level().isClientSide && itemInHand.is(Items.SHIELD))
             applyShieldEffects();
     }
 
     @Override
     public void stopUsingItem() {
         super.stopUsingItem();
-        if (!this.level().isClientSide)
+        if (!level().isClientSide)
             removeShieldEffects();
     }
 
     @Override
     protected void completeUsingItem() {
-        ItemStack item = this.getUseItem();
+        ItemStack item = getUseItem();
         FoodProperties foodPropertiesItem = item.get(DataComponents.FOOD);
         super.completeUsingItem();
 
-        if (foodPropertiesItem != null && !this.level().isClientSide()) {
-            this.heal(foodPropertiesItem.nutrition());
-            this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_BURP, this.getSoundSource(), 0.5F, PoorRandom.quickFloat() * 0.1F + 0.9F);
+        if (foodPropertiesItem != null && !level().isClientSide()) {
+            heal(foodPropertiesItem.nutrition());
+            level().playSound(null, getX(), getY(), getZ(), SoundEvents.PLAYER_BURP, getSoundSource(), 0.5F, PoorRandom.quickFloat() * 0.1F + 0.9F);
         }
     }
 
@@ -240,14 +254,6 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
         if (item != null && item.isDamageableItem())
             item.hurtAndBreak((int) f, this, getUsedItemHand());
         return super.applyItemBlocking(serverLevel, damageSource, f);
-    }
-
-    public boolean isFullHealth() {
-        return getHealth() >= getMaxHealth();
-    }
-
-    public float getHealthPercent() {
-        return this.getHealth() / this.getMaxHealth();
     }
 
     @Override

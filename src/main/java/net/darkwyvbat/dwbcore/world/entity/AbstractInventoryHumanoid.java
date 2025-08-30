@@ -1,19 +1,15 @@
 package net.darkwyvbat.dwbcore.world.entity;
 
-import net.darkwyvbat.dwbcore.tag.DwbItemTags;
-import net.darkwyvbat.dwbcore.world.entity.ai.WeaponActions;
 import net.darkwyvbat.dwbcore.world.entity.inventory.*;
-import net.darkwyvbat.dwbcore.world.entity.specs.OmniWarrior;
-import net.darkwyvbat.dwbcore.world.entity.specs.PotionAttacker;
-import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.npc.InventoryCarrier;
 import net.minecraft.world.item.Item;
@@ -29,23 +25,19 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity implements InventoryUser, OmniWarrior, PotionAttacker {
+public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity implements InventoryUser {
+
+    protected static final Vec3 ITEM_PICKUP_REACH = new Vec3(1.2, 0.7, 1.2);
 
     protected final HumanoidInventoryManager inventoryManager;
-    public boolean shouldRevisionItems = true, shouldConsumeNow = false;
-    protected static final Vec3 ITEM_PICKUP_REACH = new Vec3(1.2, 0.7, 1.2);
+    public boolean shouldRevisionItems = true;
     protected List<ItemEntity> wantedItems = new ArrayList<>();
 
-    protected AbstractInventoryHumanoid(EntityType<? extends PathfinderMob> entityType, Level level) {
+    protected AbstractInventoryHumanoid(EntityType<? extends AbstractInventoryHumanoid> entityType, Level level) {
         super(entityType, level);
         inventoryManager = provideInventoryManager();
         inventoryManager.getInventory().addListener(this);
         inventoryManager.updateInventoryEntries();
-    }
-
-    @Override
-    public HumanoidInventoryManager provideInventoryManager() {
-        return new HumanoidInventoryManager(new SimpleContainer(16), new DefaultInventoryItemCategorizer(), HumanoidInventoryManager.COMPARATORS, HumanoidInventoryManager.ITEMS_IMPORTANCE_ORDER);
     }
 
     @Override
@@ -62,8 +54,18 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
     }
 
     @Override
+    public HumanoidInventoryManager provideInventoryManager() {
+        return new HumanoidInventoryManager(new SimpleContainer(getInventorySize()), new DefaultInventoryItemCategorizer(), HumanoidInventoryManager.COMPARATORS, HumanoidInventoryManager.ITEMS_IMPORTANCE_ORDER);
+    }
+
+    @Override
     public HumanoidInventoryManager getInventoryManager() {
         return inventoryManager;
+    }
+
+    @Override
+    public int getInventorySize() {
+        return 16;
     }
 
     @Override
@@ -174,12 +176,6 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
         inventoryManager.getInventory().setChanged();
     }
 
-    public void prepareForFight() {
-        prepareMelee();
-        setUpArmor();
-        prepareForAttackBlocking();
-    }
-
     public void setUpArmor() {
         Set<EquipmentSlot> equippedInThisTick = new HashSet<>();
 
@@ -229,23 +225,12 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
         equipFromInventory(EquipmentSlot.OFFHAND, InventoryManager.INVALID_INDEX);
     }
 
-    public boolean canHeal() {
-        return inventoryManager.hasHeals();
-    }
-
     public boolean isEnoughForCare() {
         int c = 0;
         List<Integer> items = inventoryManager.getInventoryEntry(InventoryItemCategory.CONSUMABLE);
         for (int item : items)
             c += getInventory().getItem(item).getCount();
         return c > 10;
-    }
-
-    public boolean setUpForHeal() {
-        int i = inventoryManager.getForHealIndex();
-        if (i == InventoryManager.INVALID_INDEX) return false;
-        equipFromInventory(EquipmentSlot.OFFHAND, i);
-        return true;
     }
 
     @Override
@@ -270,85 +255,6 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
 
     public List<ItemEntity> getWantedItems() {
         return this.wantedItems;
-    }
-
-
-    @Override
-    public boolean hasAttackPotions() {
-        return inventoryManager.entryNotEmpty(InventoryItemCategory.ATTACK_POTION);
-    }
-
-    //TODO move to child
-    @Override
-    public Set<Holder<MobEffect>> getAvailableAttackEffects() {
-        return inventoryManager.getAvailablePotionEffectsWithIndices().keySet();
-    }
-
-    @Override
-    public void preparePotionAttack(Holder<MobEffect> effect, EquipmentSlot slot) {
-        equipFromInventory(slot, inventoryManager.getPotionWithEffectIndex(effect));
-    }
-
-    @Override
-    public boolean hasMelee() {
-        return inventoryManager.entryNotEmpty(InventoryItemCategory.MELEE_WEAPON);
-    }
-
-    @Override
-    public boolean readyForMelee() {
-        return getItemInHand(InteractionHand.MAIN_HAND).is(DwbItemTags.MELEE_WEAPONS);
-    }
-
-    @Override
-    public void prepareMelee() {
-        equipFromInventory(EquipmentSlot.MAINHAND, inventoryManager.getFirstIndexInEntry(InventoryItemCategory.MELEE_WEAPON));
-    }
-
-    @Override
-    public boolean hasRanged() {
-        return inventoryManager.entryNotEmpty(InventoryItemCategory.RANGED_WEAPON);
-    }
-
-    @Override
-    public boolean readyForRanged() {
-        return getItemInHand(InteractionHand.MAIN_HAND).is(DwbItemTags.RANGED_WEAPONS);
-    }
-
-    @Override
-    public void prepareRanged() {
-        equipFromInventory(EquipmentSlot.MAINHAND, inventoryManager.getFirstIndexInEntry(InventoryItemCategory.RANGED_WEAPON));
-    }
-
-    @Override
-    public void performRangedAttack(Entity target, InteractionHand hand, float charge) {
-        ItemStack item = getItemInHand(hand);
-        WeaponActions.get(item).ifPresent(a -> a.use(this, item, target, charge));
-    }
-
-    @Override
-    public boolean hasAttackBlocker() {
-        return inventoryManager.entryNotEmpty(InventoryItemCategory.SHIELD_OR_SUPPORT);
-    }
-
-    @Override
-    public boolean readyForBlockAttack() {
-        return useItemCD.isReady() && getItemInHand(InteractionHand.OFF_HAND).has(DataComponents.BLOCKS_ATTACKS);
-    }
-
-    @Override
-    public void prepareForAttackBlocking() {
-        equipFromInventory(EquipmentSlot.OFFHAND, inventoryManager.getFirstIndexInEntry(InventoryItemCategory.SHIELD_OR_SUPPORT));
-    }
-
-    @Override
-    public void startBlockAttack() {
-        if (readyForBlockAttack())
-            startUsingItem(InteractionHand.OFF_HAND);
-    }
-
-    @Override
-    public void stopBlockAttack() {
-        stopUsingItem();
     }
 
 }
