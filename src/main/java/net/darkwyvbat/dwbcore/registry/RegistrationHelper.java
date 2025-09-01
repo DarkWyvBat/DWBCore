@@ -15,8 +15,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.Arrays;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public final class RegistrationHelper {
 
@@ -46,5 +49,14 @@ public final class RegistrationHelper {
     public static ResourceKey<PoiType> registerPoi(ResourceLocation path, int ticketCount, int searchDistance, Block... blocks) {
         PointOfInterestHelper.register(path, ticketCount, searchDistance, blocks);
         return ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, path);
+    }
+
+    public static ResourceKey<PoiType> registerPoi(ResourceLocation path, int ticketCount, int searchDistance, BlockState... states) {
+        PointOfInterestHelper.register(path, ticketCount, searchDistance, Arrays.asList(states));
+        return ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, path);
+    }
+
+    public static ResourceKey<PoiType> registerPoi(ResourceLocation path, int ticketCount, int searchDistance, Block block, Predicate<BlockState> statePredicate) {
+        return registerPoi(path, ticketCount, searchDistance, block.getStateDefinition().getPossibleStates().stream().filter(statePredicate).toArray(BlockState[]::new));
     }
 }
