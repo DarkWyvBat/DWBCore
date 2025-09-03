@@ -38,7 +38,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
             .withEyeHeight(1.62F)
             .withAttachments(EntityAttachments.builder().attach(EntityAttachment.VEHICLE, DEFAULT_VEHICLE_ATTACHMENT));
     public static final EntityDimensions SITTING_DIMENSIONS = STANDING_DIMENSIONS.scale(1.0F, 0.7F);
-    public static final EntityDimensions SLEEPING_DIMENSIONS = EntityDimensions.fixed(0.2F, 0.2F);
+    public static final EntityDimensions SLEEPING_DIMENSIONS = EntityDimensions.fixed(0.3F, 0.3F);
     public static final EntityDimensions SMALL_HITBOX_DIMENSIONS = EntityDimensions.scalable(0.6F, 0.6F)
             .withEyeHeight(0.4F);
     public static final EntityDimensions CROUCHING_DIMENSIONS = EntityDimensions.scalable(0.6F, 1.5F)
@@ -85,7 +85,6 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     @Override
     public void aiStep() {
         super.aiStep();
-        updateState(getMobState());
         updateSwingTime();
     }
 
