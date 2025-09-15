@@ -1,5 +1,6 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.goal;
 
+import net.darkwyvbat.dwbcore.world.entity.AbstractHumanoidEntity;
 import net.darkwyvbat.dwbcore.world.entity.AbstractInventoryHumanoid;
 import net.darkwyvbat.dwbcore.world.entity.ai.AIUtils;
 import net.darkwyvbat.dwbcore.world.entity.ai.combat.CombatConfig;
@@ -12,7 +13,7 @@ import java.util.EnumSet;
 
 //TODO
 public class HumanoidCombatGoal extends Goal {
-    protected final AbstractInventoryHumanoid mob;
+    protected final AbstractHumanoidEntity mob;
     protected LivingEntity target;
     protected CombatState state;
     private final CombatStrategyManager strategyManager;
@@ -27,7 +28,7 @@ public class HumanoidCombatGoal extends Goal {
     @Override
     public boolean canUse() {
         LivingEntity target = mob.getTarget();
-        if (!AIUtils.isValidTarget(target) || (mob.getAirSupply() < 10 && !mob.canBreatheUnderwater()))
+        if (!AIUtils.isValidTarget(target) || (mob.getAirSupply() < 10 && !mob.canBreatheUnderwater()) || !mob.canSelfMove())
             return false;
         this.target = target;
         return true;

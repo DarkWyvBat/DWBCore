@@ -155,21 +155,21 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
             }
         });
         strategies.put(InventoryItemCategory.ARMOR, armorStrategy);
-        Set<Integer> trashIndices = this.inventoryManager.getPotentialTrash(slotsToFree, strategies);
+        Set<Integer> trashIndices = inventoryManager.getPotentialTrash(slotsToFree, strategies);
         throwItems(trashIndices, null, 1.0F, 40);
         trashIndices.forEach(i -> inventoryManager.getInventory().removeItem(i, inventoryManager.getInventory().getItem(i).getCount()));
     }
 
     public void throwItem(int i, int c, Vec3 dest, float f, int delay, boolean shouldUpdate) {
-        this.swing(InteractionHand.MAIN_HAND);
-        Vec3 dir = dest == null ? Vec3.directionFromRotation(this.getRotationVector()).scale(f) : dest.normalize().scale(f);
+        swing(InteractionHand.MAIN_HAND);
+        Vec3 dir = dest == null ? Vec3.directionFromRotation(getRotationVector()).scale(f) : dest.normalize().scale(f);
         spawnThrownItem(inventoryManager.getInventory().getItem(i), dir, f, delay);
-        if (shouldUpdate) this.inventoryManager.getInventory().removeItem(i, c);
-        else this.inventoryManager.getInventory().removeItemNoUpdate(i);
+        if (shouldUpdate) inventoryManager.getInventory().removeItem(i, c);
+        else inventoryManager.getInventory().removeItemNoUpdate(i);
     }
 
     public void throwItems(Set<Integer> items, Vec3 dest, float f, int delay) {
-        this.swing(InteractionHand.MAIN_HAND);
+        swing(InteractionHand.MAIN_HAND);
         for (Integer i : items)
             throwItem(i, inventoryManager.getInventory().getItem(i).getCount(), dest, 0.3F, delay, false);
 
@@ -194,21 +194,21 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
     }
 
     protected void completeUsingItem() {
-        InteractionHand hand = this.getUsedItemHand();
+        InteractionHand hand = getUsedItemHand();
         EquipmentSlot slot = hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
         Integer invIndex = inventoryManager.getEquipmentSlotsInvRefs().get(slot);
         super.completeUsingItem();
         if (invIndex != null)
-            this.getInventory().setItem(invIndex, this.getItemInHand(hand).copy());
+            getInventory().setItem(invIndex, getItemInHand(hand).copy());
 
         inventoryManager.updateInventoryEntries();
     }
 
     public int equipFromInventory(EquipmentSlot targetSlot, int newInvIndex) {
         Integer oldInvIndex = inventoryManager.getEquipmentSlotsInvRefs().get(targetSlot);
-        if (Objects.equals(oldInvIndex, newInvIndex)) return oldInvIndex;
+        if (oldInvIndex.equals(newInvIndex)) return oldInvIndex;
         ItemStack item = newInvIndex != InventoryManager.INVALID_INDEX ? getInventory().getItem(newInvIndex) : ItemStack.EMPTY;
-        this.setItemSlot(targetSlot, item);
+        setItemSlot(targetSlot, item);
         inventoryManager.getEquipmentSlotsInvRefs().put(targetSlot, newInvIndex);
         return newInvIndex;
     }

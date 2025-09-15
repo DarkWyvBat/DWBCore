@@ -18,12 +18,12 @@ public class GoToWantedItemGoal extends Goal {
     public GoToWantedItemGoal(AbstractInventoryHumanoid mob, double speedModifier) {
         this.mob = mob;
         this.speed = speedModifier;
-        this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+        setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
 
     @Override
     public boolean canUse() {
-        if (!cd.tick() || mob.getWantedItems().isEmpty()) return false;
+        if (!cd.tick() || mob.getWantedItems().isEmpty() || !mob.canSelfMove()) return false;
 
         ItemEntity closestItem = null;
         double closestDistSqr = Double.MAX_VALUE;

@@ -88,6 +88,36 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
         updateSwingTime();
     }
 
+    public boolean canSelfMove() {
+        return !isSleeping() && !isSitting() && isAlive();
+    }
+
+    public void standUp() {
+        setMobState(MobStates.STANDING);
+    }
+
+    public void startSitting() {
+        startSitting(blockPosition());
+    }
+
+    public void startSitting(BlockPos blockPos) {
+        if (isPassenger()) stopRiding();
+        if (isSleeping()) stopSleeping();
+        setMobState(MobStates.SITTING);
+        setPos(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+        setDeltaMovement(Vec3.ZERO);
+        hasImpulse = true;
+    }
+
+    public void stopSitting() {
+        if (isSitting())
+            setMobState(MobStates.STANDING);
+    }
+
+    public boolean isSitting() {
+        return getMobState() == MobStates.SITTING;
+    }
+
     @Override
     public void startSleeping(BlockPos blockPos) {
         setMobState(MobStates.SLEEPING);
@@ -164,7 +194,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
 
     @Override
     public boolean isVisuallySwimming() {
-        return this.isSwimming();
+        return isSwimming() || super.isVisuallySwimming();
     }
 
     public TickingCooldown getUseItemCD() {
@@ -219,21 +249,21 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     }
 
     protected void spawnThrownItem(ItemStack itemStack, Vec3 dir, float f, int delay) {
-        ItemEntity itemEntity = new ItemEntity(this.level(), this.getX(), this.getEyeY(), this.getZ(), itemStack);
+        ItemEntity itemEntity = new ItemEntity(level(), getX(), getEyeY(), getZ(), itemStack);
         itemEntity.setThrower(this);
         itemEntity.setDeltaMovement(dir);
         itemEntity.setPickUpDelay(delay);
-        this.level().addFreshEntity(itemEntity);
+        level().addFreshEntity(itemEntity);
     }
 
     public void applyShieldEffects() {
         if (!getAttribute(Attributes.KNOCKBACK_RESISTANCE).hasModifier(SHIELD_ATTRIBUTE_ID))
-            this.getAttribute(Attributes.KNOCKBACK_RESISTANCE).addTransientModifier(SHIELD_KNOCKBACK_RESISTANCE);
+            getAttribute(Attributes.KNOCKBACK_RESISTANCE).addTransientModifier(SHIELD_KNOCKBACK_RESISTANCE);
     }
 
     public void removeShieldEffects() {
         if (getAttribute(Attributes.KNOCKBACK_RESISTANCE).hasModifier(SHIELD_ATTRIBUTE_ID))
-            this.getAttribute(Attributes.KNOCKBACK_RESISTANCE).removeModifier(SHIELD_KNOCKBACK_RESISTANCE);
+            getAttribute(Attributes.KNOCKBACK_RESISTANCE).removeModifier(SHIELD_KNOCKBACK_RESISTANCE);
     }
 
     @Override
