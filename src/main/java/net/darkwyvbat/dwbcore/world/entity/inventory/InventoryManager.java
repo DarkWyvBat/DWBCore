@@ -29,7 +29,7 @@ public class InventoryManager<C extends Enum<C>> {
 
         equipmentSlotsInvRefs = new EnumMap<>(EquipmentSlot.class);
         for (EquipmentSlot slot : EquipmentSlot.values())
-            equipmentSlotsInvRefs.put(slot, null);
+            equipmentSlotsInvRefs.put(slot, INVALID_INDEX);
     }
 
     public Set<Integer> getPotentialTrash(int slotsCount, Map<C, CategoryCollector<C>> categoryStrategies) {
