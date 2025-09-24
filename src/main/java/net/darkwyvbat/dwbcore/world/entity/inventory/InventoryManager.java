@@ -93,6 +93,13 @@ public class InventoryManager<C extends Enum<C>> {
         return getInventoryEntry(cat).isEmpty() ? INVALID_INDEX : getInventoryEntry(cat).getLast();
     }
 
+    public int getItemCountInEntry(C cat) {
+        int c = 0;
+        for (int i : getInventoryEntry(cat))
+            c += getItem(i).getCount();
+        return c;
+    }
+
     public boolean entryNotEmpty(C cat) {
         return !getInventoryEntry(cat).isEmpty();
     }

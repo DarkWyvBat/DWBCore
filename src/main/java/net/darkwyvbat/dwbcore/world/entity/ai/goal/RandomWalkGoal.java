@@ -38,7 +38,7 @@ public class RandomWalkGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        if (mob.getPerception().getProfile().getState().isGreater(ActivityState.REGULAR) || !mob.canSelfMove() || !mob.canSelfMove())
+        if (mob.getPerception().getProfile().getState().isGreater(ActivityState.REGULAR) || !mob.canSelfMove())
             return false;
         else {
             if (!this.forceTrigger) {
