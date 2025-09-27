@@ -104,7 +104,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
         if (isPassenger()) stopRiding();
         if (isSleeping()) stopSleeping();
         setMobState(MobStates.SITTING);
-        setPos(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+        setPos(blockPos.getX(), blockPos.getY() + 0.1, blockPos.getZ());
         setDeltaMovement(Vec3.ZERO);
         hasImpulse = true;
     }
