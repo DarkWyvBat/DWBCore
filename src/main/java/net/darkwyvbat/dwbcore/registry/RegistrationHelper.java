@@ -3,6 +3,7 @@ package net.darkwyvbat.dwbcore.registry;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.world.poi.PointOfInterestHelper;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -20,6 +21,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.Arrays;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
 public final class RegistrationHelper {
 
@@ -58,5 +60,9 @@ public final class RegistrationHelper {
 
     public static ResourceKey<PoiType> registerPoi(ResourceLocation path, int ticketCount, int searchDistance, Block block, Predicate<BlockState> statePredicate) {
         return registerPoi(path, ticketCount, searchDistance, block.getStateDefinition().getPossibleStates().stream().filter(statePredicate).toArray(BlockState[]::new));
+    }
+
+    public static <T> DataComponentType<T> registerDataComponent(ResourceLocation path, UnaryOperator<DataComponentType.Builder<T>> unaryOperator) {
+        return Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, path, unaryOperator.apply(DataComponentType.builder()).build());
     }
 }
