@@ -1,8 +1,17 @@
 package net.darkwyvbat.dwbcore.util.time;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+
 public class TimestampCooldown {
-    private long duration;
-    private long timestamp;
+
+    public static final Codec<TimestampCooldown> CODEC = RecordCodecBuilder.create(i -> i.group(
+            Codec.LONG.fieldOf("duration").forGetter(TimestampCooldown::getDuration),
+            Codec.LONG.fieldOf("timestamp").forGetter(TimestampCooldown::getTimestamp)
+    ).apply(i, TimestampCooldown::new));
+
+    protected long duration;
+    protected long timestamp;
 
     public TimestampCooldown() {
         reset();
@@ -34,5 +43,9 @@ public class TimestampCooldown {
 
     public long getDuration() {
         return duration;
+    }
+
+    public Long getTimestamp() {
+        return timestamp;
     }
 }

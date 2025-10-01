@@ -1,8 +1,16 @@
 package net.darkwyvbat.dwbcore.util.time;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+
 public class TickingCooldown {
 
-    protected final long defaultValue;
+    public static final Codec<TickingCooldown> CODEC = RecordCodecBuilder.create(i -> i.group(
+            Codec.LONG.fieldOf("ticks").forGetter(TickingCooldown::getTicks),
+            Codec.LONG.fieldOf("default_value").forGetter(TickingCooldown::getDefaultValue)
+    ).apply(i, TickingCooldown::new));
+
+    protected long defaultValue;
     protected long ticks;
 
     public TickingCooldown() {
@@ -44,6 +52,10 @@ public class TickingCooldown {
 
     public long getTicks() {
         return ticks;
+    }
+
+    public void setDefaultValue(long v) {
+        defaultValue = v;
     }
 
     public long getDefaultValue() {
