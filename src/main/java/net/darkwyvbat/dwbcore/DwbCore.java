@@ -2,6 +2,7 @@ package net.darkwyvbat.dwbcore;
 
 import net.darkwyvbat.dwbcore.debug.DwbDebugContent;
 import net.darkwyvbat.dwbcore.event.DwbEvents;
+import net.darkwyvbat.dwbcore.network.DwbEntityDataSerializers;
 import net.darkwyvbat.dwbcore.registry.DwbRegistries;
 import net.darkwyvbat.dwbcore.util.ModInfo;
 import net.darkwyvbat.dwbcore.world.block.DwbBlocks;
@@ -27,6 +28,7 @@ public class DwbCore implements ModInitializer {
         if (IS_DEV)
             DwbDebugContent.init();
 
+        DwbEntityDataSerializers.init();
         DwbRegistries.init();
         DwbEvents.init();
         DwbBlocks.init();

@@ -1,11 +1,11 @@
 package net.darkwyvbat.dwbcore.world.entity;
 
+import net.darkwyvbat.dwbcore.network.DwbEntityDataSerializers;
 import net.darkwyvbat.dwbcore.util.PoorRandom;
 import net.darkwyvbat.dwbcore.util.time.TickingCooldown;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -47,7 +47,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     public static final EntityDimensions DYING_DIMENSIONS = EntityDimensions.fixed(0.2F, 0.2F)
             .withEyeHeight(1.62F);
 
-    private static final EntityDataAccessor<Integer> DATA_MOB_STATE = SynchedEntityData.defineId(AbstractHumanoidEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<MobState> DATA_MOB_STATE = SynchedEntityData.defineId(AbstractHumanoidEntity.class, DwbEntityDataSerializers.MOB_STATE);
 
     public static final ResourceLocation SHIELD_ATTRIBUTE_ID = INFO.idOf("shield");
     public static final AttributeModifier SHIELD_KNOCKBACK_RESISTANCE = new AttributeModifier(SHIELD_ATTRIBUTE_ID, 0.8, AttributeModifier.Operation.ADD_VALUE);
@@ -62,19 +62,19 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
-        builder.define(DATA_MOB_STATE, MobStates.STANDING.getValue());
+        builder.define(DATA_MOB_STATE, MobState.STANDING);
     }
 
     @Override
     protected void addAdditionalSaveData(ValueOutput valueOutput) {
         super.addAdditionalSaveData(valueOutput);
-        valueOutput.putInt("MobState", entityData.get(DATA_MOB_STATE));
+        valueOutput.store("mob_state", MobState.CODEC, getMobState());
     }
 
     @Override
     protected void readAdditionalSaveData(ValueInput valueInput) {
         super.readAdditionalSaveData(valueInput);
-        setMobState(MobStates.fromInt(valueInput.getIntOr("MobState", 0)));
+        setMobState(valueInput.read("mob_state", MobState.CODEC).orElse(MobState.STANDING));
     }
 
     public static AttributeSupplier.Builder createHumanoidAttributes() {
@@ -93,7 +93,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     }
 
     public void standUp() {
-        setMobState(MobStates.STANDING);
+        setMobState(MobState.STANDING);
     }
 
     public void startSitting() {
@@ -103,7 +103,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     public void startSitting(BlockPos blockPos) {
         if (isPassenger()) stopRiding();
         if (isSleeping()) stopSleeping();
-        setMobState(MobStates.SITTING);
+        setMobState(MobState.SITTING);
         setPos(blockPos.getX(), blockPos.getY() + 0.1, blockPos.getZ());
         setDeltaMovement(Vec3.ZERO);
         hasImpulse = true;
@@ -111,40 +111,40 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
 
     public void stopSitting() {
         if (isSitting())
-            setMobState(MobStates.STANDING);
+            setMobState(MobState.STANDING);
     }
 
     public boolean isSitting() {
-        return getMobState() == MobStates.SITTING;
+        return getMobState() == MobState.SITTING;
     }
 
     @Override
     public void startSleeping(BlockPos blockPos) {
-        setMobState(MobStates.SLEEPING);
+        setMobState(MobState.SLEEPING);
         super.startSleeping(blockPos);
     }
 
     @Override
     public void stopSleeping() {
-        setMobState(MobStates.STANDING);
+        setMobState(MobState.STANDING);
         super.stopSleeping();
     }
 
     @Override
     public boolean isSleeping() {
-        return super.isSleeping() && getMobState() == MobStates.SLEEPING;
+        return super.isSleeping() && getMobState() == MobState.SLEEPING;
     }
 
-    public MobStates getMobState() {
-        return MobStates.fromInt(entityData.get(DATA_MOB_STATE));
+    public MobState getMobState() {
+        return entityData.get(DATA_MOB_STATE);
     }
 
-    public void setMobState(MobStates state) {
-        entityData.set(DATA_MOB_STATE, state.getValue());
+    public void setMobState(MobState state) {
+        entityData.set(DATA_MOB_STATE, state);
         updateState(getMobState());
     }
 
-    public void updateState(MobStates state) {
+    public void updateState(MobState state) {
         switch (state) {
             case STANDING -> setPose(Pose.STANDING);
             case CROUCHING -> setPose(Pose.CROUCHING);
@@ -162,14 +162,14 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
 
     @Override
     public boolean isCrouching() {
-        return getMobState() == MobStates.CROUCHING;
+        return getMobState() == MobState.CROUCHING;
     }
 
     @Override
     public void setCrouch(boolean crouching) {
         if (crouching)
-            setMobState(MobStates.CROUCHING);
-        else if (getMobState() == MobStates.CROUCHING) setMobState(MobStates.STANDING);
+            setMobState(MobState.CROUCHING);
+        else if (getMobState() == MobState.CROUCHING) setMobState(MobState.STANDING);
     }
 
     @Override
@@ -181,14 +181,14 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     public void setSwimming(boolean swimming) {
         super.setSwimming(swimming);
         if (swimming)
-            setMobState(MobStates.SWIMMING);
-        else if (getMobState() == MobStates.SWIMMING)
-            setMobState(MobStates.STANDING);
+            setMobState(MobState.SWIMMING);
+        else if (getMobState() == MobState.SWIMMING)
+            setMobState(MobState.STANDING);
     }
 
     @Override
     public void updateSwimming() {
-        if (!level().isClientSide)
+        if (!level().isClientSide())
             setSwimming(isEffectiveAi() && isUnderWater());
     }
 
@@ -205,14 +205,14 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     public void startUsingItem(InteractionHand hand) {
         super.startUsingItem(hand);
         ItemStack itemInHand = getItemInHand(hand);
-        if (!level().isClientSide && itemInHand.is(Items.SHIELD))
+        if (!level().isClientSide() && itemInHand.is(Items.SHIELD))
             applyShieldEffects();
     }
 
     @Override
     public void stopUsingItem() {
         super.stopUsingItem();
-        if (!level().isClientSide)
+        if (!level().isClientSide())
             removeShieldEffects();
     }
 
