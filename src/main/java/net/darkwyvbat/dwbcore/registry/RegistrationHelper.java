@@ -2,12 +2,14 @@ package net.darkwyvbat.dwbcore.registry;
 
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.world.poi.PointOfInterestHelper;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
@@ -64,5 +66,13 @@ public final class RegistrationHelper {
 
     public static <T> DataComponentType<T> registerDataComponent(ResourceLocation path, UnaryOperator<DataComponentType.Builder<T>> unaryOperator) {
         return Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, path, unaryOperator.apply(DataComponentType.builder()).build());
+    }
+
+    public static SoundEvent registerSoundEvent(ResourceLocation path) {
+        return Registry.register(BuiltInRegistries.SOUND_EVENT, path, SoundEvent.createVariableRangeEvent(path));
+    }
+
+    public static Holder.Reference<SoundEvent> registerSoundEventRef(ResourceLocation path) {
+        return Registry.registerForHolder(BuiltInRegistries.SOUND_EVENT, path, SoundEvent.createVariableRangeEvent(path));
     }
 }
