@@ -18,7 +18,7 @@ import java.util.Optional;
 
 public final class WeaponActions {
 
-    public static final Map<Item, WeaponUsageAction> WEAPON_ACTIONS = new IdentityHashMap<>();
+    private static final Map<Item, WeaponUsageAction> WEAPON_ACTIONS = new IdentityHashMap<>();
 
     public static final WeaponUsageAction BOW = (user, weapon, target, charge) -> {
         if (!(user.level() instanceof ServerLevel serverLevel)) return;
