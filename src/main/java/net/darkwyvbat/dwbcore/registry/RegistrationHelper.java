@@ -10,6 +10,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
@@ -74,5 +75,9 @@ public final class RegistrationHelper {
 
     public static Holder.Reference<SoundEvent> registerSoundEventRef(ResourceLocation path) {
         return Registry.registerForHolder(BuiltInRegistries.SOUND_EVENT, path, SoundEvent.createVariableRangeEvent(path));
+    }
+
+    public static Holder.Reference<MobEffect> registerMobEffectRef(ResourceLocation path, MobEffect mobEffect) {
+        return Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, path, mobEffect);
     }
 }
