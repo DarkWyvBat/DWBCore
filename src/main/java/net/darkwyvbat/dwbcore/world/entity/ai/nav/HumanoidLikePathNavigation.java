@@ -19,6 +19,7 @@ public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
     protected boolean canOpenGates = true;
     private BlockPos lastLadderCheckPos = BlockPos.ZERO;
     private boolean lastLadderCheck = false;
+    private boolean pathCrouchState = false;
 
     public HumanoidLikePathNavigation(Mob mob, Level level) {
         super(mob, level);
@@ -113,9 +114,10 @@ public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
 
         Vec3 pos = mob.position();
         Node nextNode = path.getNextNode(), prevNode = path.getPreviousNode();
-        if (mob instanceof Crouchable crouchable)
-            crouchable.setCrouch(nextNode.type == HumanoidLikeNodeEvaluator.CROUCH_PATH_TYPE || prevNode != null && prevNode.type == HumanoidLikeNodeEvaluator.CROUCH_PATH_TYPE);
-
+        if (mob instanceof Crouchable crouchable && crouchable.isCrouching() == pathCrouchState) {
+            pathCrouchState = nextNode.type == HumanoidLikeNodeEvaluator.CROUCH_PATH_TYPE || prevNode != null && prevNode.type == HumanoidLikeNodeEvaluator.CROUCH_PATH_TYPE;
+            crouchable.setCrouch(pathCrouchState);
+        }
         boolean nextIsLadder = nextNode.type == PathType.COCOA;
         boolean prevIsLadder = prevNode != null && prevNode.type == PathType.COCOA;
         if (nextIsLadder || prevIsLadder) {

@@ -63,7 +63,7 @@ public class HumanoidLikeNodeEvaluator extends AmphibiousNodeEvaluator {
     public @NotNull PathType getPathTypeOfMob(PathfindingContext context, int x, int y, int z, Mob mob) {
         PathType pathType = super.getPathTypeOfMob(context, x, y, z, mob);
         if (pathType != PathType.BLOCKED) return pathType;
-        if (!(mob instanceof Crouchable crouchableMob) || !crouchableMob.canCrouch()) return PathType.BLOCKED;
+        if (!(mob instanceof Crouchable crouchable) || !crouchable.canCrouch()) return PathType.BLOCKED;
 
         long key = BlockPos.asLong(x, y, z);
         if (collisionCache.containsKey(key)) return collisionCache.get(key) ? CROUCH_PATH_TYPE : PathType.BLOCKED;
@@ -76,8 +76,9 @@ public class HumanoidLikeNodeEvaluator extends AmphibiousNodeEvaluator {
             collisionCache.put(key, true);
             return floorLevelType;
         }
-        AABB aabb = crouchableMob.getCrouchDimension().makeBoundingBox(x + 0.5, y, z + 0.5);
-        boolean canPass = currentContext.level().noCollision(mob, aabb);
+        double floorY = getFloorLevel(new BlockPos(x, y, z));
+        AABB aabb = crouchable.getCrouchDimension().makeBoundingBox(x + 0.5, floorY, z + 0.5);
+        boolean canPass = context.level().noCollision(mob, aabb);
         collisionCache.put(key, canPass);
 
         return canPass ? CROUCH_PATH_TYPE : PathType.BLOCKED;
