@@ -4,7 +4,7 @@ import net.darkwyvbat.dwbcore.util.PoorRandom;
 import net.darkwyvbat.dwbcore.world.entity.AbstractHumanoidEntity;
 import net.darkwyvbat.dwbcore.world.entity.AbstractInventoryHumanoid;
 import net.darkwyvbat.dwbcore.world.entity.CombatantInventoryHumanoid;
-import net.darkwyvbat.dwbcore.world.entity.MobStates;
+import net.darkwyvbat.dwbcore.world.entity.MobState;
 import net.darkwyvbat.dwbcore.world.entity.ai.perception.ActivityState;
 import net.darkwyvbat.dwbcore.world.entity.inventory.InventoryItemCategory;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -73,7 +73,7 @@ public class HumanoidGoalsCollection {
 
         @Override
         public void start() {
-            mob.setMobState(MobStates.SITTING);
+            mob.setMobState(MobState.SITTING);
         }
     }
 

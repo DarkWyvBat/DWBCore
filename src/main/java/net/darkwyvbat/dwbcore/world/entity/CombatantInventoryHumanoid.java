@@ -52,7 +52,7 @@ public abstract class CombatantInventoryHumanoid extends AbstractInventoryHumano
 
     @Override
     public void prepareForCare(InteractionHand hand) {
-        equipFromInventory(getSlotForHand(hand), inventoryManager.getForHealIndex());
+        equipFromInventory(hand.asEquipmentSlot(), inventoryManager.getForHealIndex());
     }
 
     @Override

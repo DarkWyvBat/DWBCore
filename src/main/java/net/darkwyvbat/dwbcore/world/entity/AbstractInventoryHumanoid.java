@@ -195,11 +195,11 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
 
     protected void completeUsingItem() {
         InteractionHand hand = getUsedItemHand();
-        EquipmentSlot slot = hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
-        Integer invIndex = inventoryManager.getEquipmentSlotsInvRefs().get(slot);
+        EquipmentSlot slot = hand.asEquipmentSlot();
+        int invIndex = inventoryManager.getEquipmentSlotsInvRefs().get(slot);
         super.completeUsingItem();
-        if (invIndex != null)
-            getInventory().setItem(invIndex, getItemInHand(hand).copy());
+        if (invIndex != -1)
+            getInventory().setItem(invIndex, getItemInHand(hand));
 
         inventoryManager.updateInventoryEntries();
     }
@@ -236,20 +236,20 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
     @Override
     protected void addAdditionalSaveData(ValueOutput valueOutput) {
         super.addAdditionalSaveData(valueOutput);
-        this.writeInventoryToTag(valueOutput);
+        writeInventoryToTag(valueOutput);
     }
 
     @Override
     protected void readAdditionalSaveData(ValueInput valueInput) {
         super.readAdditionalSaveData(valueInput);
-        this.readInventoryFromTag(valueInput);
+        readInventoryFromTag(valueInput);
     }
 
     @Override
     protected void dropCustomDeathLoot(ServerLevel serverLevel, DamageSource damageSource, boolean bl) {
-        this.inventoryManager.getInventory().removeAllItems().forEach(itemStack -> {
+        inventoryManager.getInventory().removeAllItems().forEach(itemStack -> {
             if (!EnchantmentHelper.has(itemStack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP))
-                this.spawnAtLocation(serverLevel, itemStack);
+                spawnAtLocation(serverLevel, itemStack);
         });
     }
 

@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.darkwyvbat.dwbcore.client.model.HumanoidLikeModel;
 import net.darkwyvbat.dwbcore.world.entity.AbstractHumanoidEntity;
-import net.darkwyvbat.dwbcore.world.entity.MobStates;
+import net.darkwyvbat.dwbcore.world.entity.MobState;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
@@ -18,9 +18,6 @@ import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class HumanoidLikeRenderer<T extends AbstractHumanoidEntity, S extends HumanoidLikeRenderState, M extends HumanoidLikeModel<S>> extends HumanoidMobRenderer<T, S, M> {
-    public HumanoidLikeRenderer(EntityRendererProvider.Context context, M model, float f) {
-        super(context, model, f);
-    }
 
     public HumanoidLikeRenderer(EntityRendererProvider.Context context, M model, M babyModel, float f) {
         super(context, model, babyModel, f, CustomHeadLayer.Transforms.DEFAULT);
@@ -79,6 +76,6 @@ public abstract class HumanoidLikeRenderer<T extends AbstractHumanoidEntity, S e
     @Override
     public void extractRenderState(T entity, S state, float partialTicks) {
         super.extractRenderState(entity, state, partialTicks);
-        state.isSitting = entity.getMobState() == MobStates.SITTING;
+        state.isSitting = entity.getMobState() == MobState.SITTING;
     }
 }

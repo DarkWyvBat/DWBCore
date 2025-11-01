@@ -4,10 +4,10 @@ import net.darkwyvbat.dwbcore.DwbCore;
 import net.darkwyvbat.dwbcore.client.DwbModelLayers;
 import net.darkwyvbat.dwbcore.registry.RegistrationHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayers;
+import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 
@@ -26,11 +26,9 @@ public final class DwbDebugContent {
         DwbCore.LOGGER.debug("DWB Core debug content");
         EntityModelLayerRegistry.registerModelLayer(DwbModelLayers.HUMANOID_TESTER, HumanoidTesterModel::createBodyLayer);
         EntityModelLayerRegistry.registerModelLayer(DwbModelLayers.HUMANOID_TESTER_BABY, () -> HumanoidTesterModel.createBodyLayer().apply(HumanoidModel.BABY_TRANSFORMER));
-        EntityRendererRegistry.register(HUMANOID_TESTER, context -> new HumanoidTesterRenderer(context,
-                ModelLayers.PLAYER_INNER_ARMOR,
-                ModelLayers.PLAYER_OUTER_ARMOR,
-                ModelLayers.PLAYER_INNER_ARMOR,
-                ModelLayers.PLAYER_OUTER_ARMOR
+        EntityRenderers.register(HUMANOID_TESTER, context -> new HumanoidTesterRenderer(context,
+                ModelLayers.PLAYER_ARMOR,
+                ModelLayers.PLAYER_ARMOR
         ));
     }
 }

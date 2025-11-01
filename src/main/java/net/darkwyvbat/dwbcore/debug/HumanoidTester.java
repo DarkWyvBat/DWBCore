@@ -104,7 +104,6 @@ public class HumanoidTester extends CombatantInventoryHumanoid implements Growab
         this.goalSelector.addGoal(2, combatGoal);
         this.goalSelector.addGoal(3, new GoToWantedItemGoal(this, 1.2));
         this.goalSelector.addGoal(4, new GoToGoodLandGoal(this, 1.0));
-        this.goalSelector.addGoal(5, new HumanoidGoalsCollection.BeOnGuardGoal(this));
         this.goalSelector.addGoal(5, new RandomWalkGoal(this, 1.0));
         this.goalSelector.addGoal(6, new LookAtEntityGoal(this, 6.0F));
         this.goalSelector.addGoal(6, new RandomLookAroundGoal(this));
@@ -125,7 +124,7 @@ public class HumanoidTester extends CombatantInventoryHumanoid implements Growab
     @Override
     public void setBaby(boolean bl) {
         this.getEntityData().set(DATA_BABY_ID, bl);
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             AttributeInstance attributeInstance = this.getAttribute(Attributes.MOVEMENT_SPEED);
             attributeInstance.removeModifier(SPEED_MODIFIER_BABY.id());
             if (bl) {
@@ -149,14 +148,14 @@ public class HumanoidTester extends CombatantInventoryHumanoid implements Growab
     @Override
     protected void addAdditionalSaveData(ValueOutput valueOutput) {
         super.addAdditionalSaveData(valueOutput);
-        valueOutput.putBoolean("IsBaby", this.isBaby());
+        valueOutput.putBoolean("is_baby", isBaby());
         saveChronology(valueOutput);
     }
 
     @Override
     protected void readAdditionalSaveData(ValueInput valueInput) {
         super.readAdditionalSaveData(valueInput);
-        this.setBaby(valueInput.getBooleanOr("IsBaby", false));
+        setBaby(valueInput.getBooleanOr("is_baby", false));
         loadChronology(valueInput);
     }
 }

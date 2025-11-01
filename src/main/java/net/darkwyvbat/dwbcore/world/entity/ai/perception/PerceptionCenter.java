@@ -28,11 +28,11 @@ public class PerceptionCenter {
     }
 
     public void read(ValueInput in) {
-        in.read("PerceptionProfile", PerceptionProfile.CODEC).ifPresent(loadedProfile -> profile = loadedProfile);
+        in.read("perception_profile", PerceptionProfile.CODEC).ifPresent(loadedProfile -> profile = loadedProfile);
     }
 
     public void write(ValueOutput out) {
-        out.store("PerceptionProfile", PerceptionProfile.CODEC, profile);
+        out.store("perception_profile", PerceptionProfile.CODEC, profile);
     }
 
     public void tick() {

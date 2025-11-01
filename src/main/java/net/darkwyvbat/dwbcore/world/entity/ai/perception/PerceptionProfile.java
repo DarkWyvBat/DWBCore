@@ -11,8 +11,8 @@ public class PerceptionProfile {
 
     public static final Codec<PerceptionProfile> CODEC = RecordCodecBuilder.create(i ->
             i.group(
-                    Codec.INT.fieldOf("Attitude").forGetter(PerceptionProfile::getAttitude),
-                    Codec.INT.fieldOf("ActivityLevel").forGetter(PerceptionProfile::getActivityLevel)
+                    Codec.INT.fieldOf("attitude").forGetter(PerceptionProfile::getAttitude),
+                    Codec.INT.fieldOf("activity_level").forGetter(PerceptionProfile::getActivityLevel)
             ).apply(i, PerceptionProfile::new)
     );
 

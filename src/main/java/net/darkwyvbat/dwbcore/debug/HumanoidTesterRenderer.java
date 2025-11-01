@@ -6,8 +6,8 @@ import net.darkwyvbat.dwbcore.client.renderer.entity.HumanoidLikeRenderState;
 import net.darkwyvbat.dwbcore.client.renderer.entity.HumanoidLikeRenderer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.model.HumanoidArmorModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.client.renderer.entity.ArmorModelSet;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.resources.ResourceLocation;
@@ -18,16 +18,13 @@ public class HumanoidTesterRenderer extends HumanoidLikeRenderer<HumanoidTester,
 
     private static final ResourceLocation TEXTURE = ResourceLocation.withDefaultNamespace("textures/entity/player/wide/steve.png");
 
-    public HumanoidTesterRenderer(EntityRendererProvider.Context context, ModelLayerLocation innerArmor, ModelLayerLocation outerArmor, ModelLayerLocation innerBabyArmor, ModelLayerLocation outerBabyArmor) {
+    public HumanoidTesterRenderer(EntityRendererProvider.Context context, ArmorModelSet<ModelLayerLocation> innerArmor, ArmorModelSet<ModelLayerLocation> outerArmor) {
         super(context, new HumanoidTesterModel(context.bakeLayer(DwbModelLayers.HUMANOID_TESTER)), new HumanoidTesterModel(context.bakeLayer(DwbModelLayers.HUMANOID_TESTER_BABY)), 0.5F);
-
         this.addLayer(
                 new HumanoidArmorLayer<>(
                         this,
-                        new HumanoidArmorModel<>(context.bakeLayer(innerArmor)),
-                        new HumanoidArmorModel<>(context.bakeLayer(outerArmor)),
-                        new HumanoidArmorModel<>(context.bakeLayer(innerBabyArmor)),
-                        new HumanoidArmorModel<>(context.bakeLayer(outerBabyArmor)),
+                        ArmorModelSet.bake(innerArmor, context.getModelSet(), HumanoidTesterModel::new),
+                        ArmorModelSet.bake(outerArmor, context.getModelSet(), HumanoidTesterModel::new),
                         context.getEquipmentRenderer()
                 ));
     }
