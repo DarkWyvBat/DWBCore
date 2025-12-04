@@ -289,7 +289,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     public float getSpeed() {
         double speed = getAttributeValue(Attributes.MOVEMENT_SPEED);
         if (isCrouching()) speed *= getAttributeValue(Attributes.SNEAKING_SPEED);
-        if (isUsingItem()) speed *= 0.7;
+        if (isUsingItem()) speed *= 0.5;
         return (float) speed;
     }
 

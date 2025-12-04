@@ -1,40 +1,38 @@
 package net.darkwyvbat.dwbcore.world.entity.inventory;
 
+import net.darkwyvbat.dwbcore.world.entity.inventory.preset.InventoryCleanStrategies;
 import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.*;
 
-public class InventoryManager<C extends Enum<C>> {
+public class InventoryManager {
 
     public static final int INVALID_INDEX = -1;
 
     private final SimpleContainer inventory;
-    private final ItemCategorizer<C> categorizer;
-    private final Map<C, Comparator<ItemStack>> itemComparators;
-    private final List<C> importanceOrder;
-    protected Map<C, List<Integer>> inventoryEntries;
+    protected final InventoryConfig config;
+    protected Map<ItemCategory, List<Integer>> inventoryEntries;
 
-    protected final Map<EquipmentSlot, Integer> equipmentSlotsInvRefs;
-
-    public InventoryManager(SimpleContainer sourceInventory, ItemCategorizer<C> categorizer, Map<C, Comparator<ItemStack>> itemComparators, List<C> importanceOrder) {
+    public InventoryManager(SimpleContainer sourceInventory, ItemCategorizer categorizer, Map<ItemCategory, Comparator<ItemStack>> itemComparators, List<ItemCategory> importanceOrder, Set<ItemCategory> categories) {
         this.inventory = sourceInventory;
-        this.categorizer = categorizer;
-        this.itemComparators = itemComparators;
-        this.importanceOrder = importanceOrder;
-        this.inventoryEntries = new EnumMap<>(categorizer.getCategoryClass());
-        for (C categoryValue : categorizer.getCategoryClass().getEnumConstants())
-            this.inventoryEntries.put(categoryValue, new ArrayList<>());
-
-        equipmentSlotsInvRefs = new EnumMap<>(EquipmentSlot.class);
-        for (EquipmentSlot slot : EquipmentSlot.values())
-            equipmentSlotsInvRefs.put(slot, INVALID_INDEX);
+        config = InventoryConfig.builder(categorizer)
+                .categories(categories)
+                .comparators(itemComparators)
+                .importanceOrder(importanceOrder)
+                .build();
+        this.inventoryEntries = new HashMap<>();
+        for (ItemCategory category : categories)
+            inventoryEntries.put(category, new ArrayList<>());
     }
 
-    public Set<Integer> getPotentialTrash(int slotsCount, Map<C, CategoryCollector<C>> categoryStrategies) {
+    public InventoryManager(SimpleContainer sourceInventory, InventoryConfig inventoryConfig) {
+        this(sourceInventory, inventoryConfig.categorizer(), inventoryConfig.comparators(), inventoryConfig.importanceOrder(), inventoryConfig.categories());
+    }
+
+    public Set<Integer> getPotentialTrash(int slotsCount, Map<ItemCategory, CategoryCollector> categoryCollectStrategies) {
         Set<Integer> trash = new HashSet<>();
-        for (C category : this.importanceOrder) {
+        for (ItemCategory category : config.importanceOrder()) {
             if (trash.size() >= slotsCount) break;
 
             List<Integer> itemsInCategory = inventoryEntries.get(category);
@@ -43,15 +41,8 @@ public class InventoryManager<C extends Enum<C>> {
             if (needFromThisCategory <= 0) break;
             int currentCategorySize = itemsInCategory.size();
             int slotsToFree = Math.min(needFromThisCategory, currentCategorySize);
-            CategoryCollector<C> strategy = categoryStrategies != null ? categoryStrategies.get(category) : null;
-            if (strategy != null)
-                strategy.collect(itemsInCategory, slotsToFree, trash, this.inventory, category);
-            else {
-                for (int i = 0; i < slotsToFree; ++i) {
-                    if (currentCategorySize - 1 - i < 0) break;
-                    trash.add(itemsInCategory.get(currentCategorySize - 1 - i));
-                }
-            }
+            CategoryCollector strategy = categoryCollectStrategies != null && !categoryCollectStrategies.isEmpty() ? categoryCollectStrategies.get(category) : InventoryCleanStrategies.FROM_LAST;
+            strategy.collect(itemsInCategory, slotsToFree, trash, inventory, category);
         }
         return trash;
     }
@@ -63,69 +54,83 @@ public class InventoryManager<C extends Enum<C>> {
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             ItemStack item = inventory.getItem(i);
             if (item.isEmpty()) continue;
-            for (C category : categorizer.categorize(item))
-                inventoryEntries.get(category).add(i);
+            for (ItemCategory itemCategory : getCategorizer().categorize(item))
+                inventoryEntries.get(itemCategory).add(i);
         }
-        for (Map.Entry<C, List<Integer>> entry : inventoryEntries.entrySet()) {
-            Comparator<ItemStack> comparator = itemComparators.get(entry.getKey());
+        for (Map.Entry<ItemCategory, List<Integer>> entry : inventoryEntries.entrySet()) {
+            Comparator<ItemStack> comparator = getItemComparators().get(entry.getKey());
             if (comparator != null)
                 entry.getValue().sort((i1, i2) -> comparator.compare(inventory.getItem(i1), inventory.getItem(i2)));
         }
+    }
+
+    public void addItems(Collection<ItemStack> items, boolean changed) {
+        if (items.isEmpty()) return;
+        for (ItemStack itemToAdd : items) inventory.addItem(itemToAdd);
+        if (changed) inventory.setChanged();
+    }
+
+    public void addItems(Collection<ItemStack> items) {
+        addItems(items, true);
+    }
+
+    public void addItems(ItemStack... itemStacks) {
+        addItems(List.of(itemStacks), true);
+    }
+
+    public void addItem(ItemStack itemStack) {
+        inventory.addItem(itemStack);
     }
 
     public ItemStack getItem(int i) {
         return inventory.getItem(i);
     }
 
-    public ItemStack getFirstItemInEntry(C cat) {
-        return getInventoryEntry(cat).isEmpty() ? ItemStack.EMPTY : inventory.getItem(getInventoryEntry(cat).getFirst());
+    public ItemStack getFirstItemInEntry(ItemCategory cat) {
+        return entryNotEmpty(cat) ? inventory.getItem(getInventoryEntry(cat).getFirst()) : ItemStack.EMPTY;
     }
 
-    public ItemStack getLastItemInEntry(C cat) {
-        return getInventoryEntry(cat).isEmpty() ? ItemStack.EMPTY : inventory.getItem(getInventoryEntry(cat).getLast());
+    public ItemStack getLastItemInEntry(ItemCategory cat) {
+        return entryNotEmpty(cat) ? inventory.getItem(getInventoryEntry(cat).getLast()) : ItemStack.EMPTY;
     }
 
-    public int getFirstIndexInEntry(C cat) {
-        return getInventoryEntry(cat).isEmpty() ? INVALID_INDEX : getInventoryEntry(cat).getFirst();
+    public int getFirstIndexInEntry(ItemCategory cat) {
+        return entryNotEmpty(cat) ? getInventoryEntry(cat).getFirst() : INVALID_INDEX;
     }
 
-    public int getLastIndexInEntry(C cat) {
-        return getInventoryEntry(cat).isEmpty() ? INVALID_INDEX : getInventoryEntry(cat).getLast();
+    public int getLastIndexInEntry(ItemCategory cat) {
+        return entryNotEmpty(cat) ? getInventoryEntry(cat).getLast() : INVALID_INDEX;
     }
 
-    public int getItemCountInEntry(C cat) {
+    public int getItemCountInEntry(ItemCategory cat) {
         int c = 0;
         for (int i : getInventoryEntry(cat))
             c += getItem(i).getCount();
         return c;
     }
 
-    public boolean entryNotEmpty(C cat) {
-        return !getInventoryEntry(cat).isEmpty();
+    public boolean entryNotEmpty(ItemCategory cat) {
+        List<Integer> entry = getInventoryEntry(cat);
+        return entry != null && !getInventoryEntry(cat).isEmpty();
     }
 
-    public List<Integer> getInventoryEntry(C type) {
+    public List<Integer> getInventoryEntry(ItemCategory type) {
         return getInventoryEntries().get(type);
     }
 
-    public Map<C, List<Integer>> getInventoryEntries() {
-        return this.inventoryEntries;
+    public Map<ItemCategory, List<Integer>> getInventoryEntries() {
+        return inventoryEntries;
     }
 
     public SimpleContainer getInventory() {
-        return this.inventory;
+        return inventory;
     }
 
-    public ItemCategorizer<C> getCategorizer() {
-        return this.categorizer;
+    public ItemCategorizer getCategorizer() {
+        return config.categorizer();
     }
 
-    public Map<C, Comparator<ItemStack>> getItemComparators() {
-        return this.itemComparators;
+    public Map<ItemCategory, Comparator<ItemStack>> getItemComparators() {
+        return config.comparators();
     }
-
-    public Map<EquipmentSlot, Integer> getEquipmentSlotsInvRefs() {
-        return this.equipmentSlotsInvRefs;
-    }
-
 }

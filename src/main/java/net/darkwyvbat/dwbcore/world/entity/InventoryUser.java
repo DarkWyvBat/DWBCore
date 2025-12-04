@@ -6,9 +6,9 @@ import net.minecraft.world.entity.npc.InventoryCarrier;
 
 public interface InventoryUser extends InventoryCarrier, ContainerListener {
 
-    InventoryManager<?> provideInventoryManager();
+    InventoryManager createInventoryManager();
 
-    InventoryManager<?> getInventoryManager();
+    InventoryManager getInventoryManager();
 
     int getInventorySize();
 

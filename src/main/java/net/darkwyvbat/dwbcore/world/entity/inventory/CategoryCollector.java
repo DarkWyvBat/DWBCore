@@ -6,6 +6,6 @@ import java.util.List;
 import java.util.Set;
 
 @FunctionalInterface
-public interface CategoryCollector<C extends Enum<C>> {
-    void collect(List<Integer> itemsInCategory, int slotsCount, Set<Integer> collectedIndices, SimpleContainer inventory, C category);
+public interface CategoryCollector {
+    void collect(List<Integer> itemsInCategory, int slotsCount, Set<Integer> collectedIndices, SimpleContainer inventory, ItemCategory category);
 }

@@ -1,15 +1,15 @@
 package net.darkwyvbat.dwbcore.world.entity;
 
+import net.darkwyvbat.dwbcore.world.entity.ai.ItemInspector;
 import net.darkwyvbat.dwbcore.world.entity.inventory.*;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
+import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.npc.InventoryCarrier;
 import net.minecraft.world.item.Item;
@@ -18,12 +18,17 @@ import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity implements InventoryUser {
 
@@ -35,9 +40,20 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
 
     protected AbstractInventoryHumanoid(EntityType<? extends AbstractInventoryHumanoid> entityType, Level level) {
         super(entityType, level);
-        inventoryManager = provideInventoryManager();
+        inventoryManager = createInventoryManager();
         inventoryManager.getInventory().addListener(this);
+    }
+
+    protected abstract MobInventoryProfile getInventoryProfile();
+
+    protected void populateInventory() {
+        inventoryManager.addItems(getInventoryProfile().items());
+    }
+
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance difficultyInstance, EntitySpawnReason entitySpawnReason, @Nullable SpawnGroupData spawnGroupData) {
+        populateInventory();
         inventoryManager.updateInventoryEntries();
+        return super.finalizeSpawn(serverLevelAccessor, difficultyInstance, entitySpawnReason, spawnGroupData);
     }
 
     @Override
@@ -54,8 +70,8 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
     }
 
     @Override
-    public HumanoidInventoryManager provideInventoryManager() {
-        return new HumanoidInventoryManager(new SimpleContainer(getInventorySize()), new DefaultInventoryItemCategorizer(), HumanoidInventoryManager.COMPARATORS, HumanoidInventoryManager.ITEMS_IMPORTANCE_ORDER);
+    public HumanoidInventoryManager createInventoryManager() {
+        return new HumanoidInventoryManager(new SimpleContainer(getInventorySize()), getInventoryProfile().inventoryConfig());
     }
 
     @Override
@@ -87,7 +103,7 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
 
     @Override
     protected void pickUpItem(ServerLevel serverLevel, ItemEntity itemEntity) {
-        this.onItemPickup(itemEntity);
+        onItemPickup(itemEntity);
         InventoryCarrier.pickUpItem(serverLevel, this, this, itemEntity);
         inventoryManager.updateInventoryEntries();
     }
@@ -98,64 +114,24 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
     }
 
     public List<ItemEntity> inspectItemEntities(List<ItemEntity> entities) {
-        List<ItemEntity> wantedItems = new ArrayList<>();
+        Set<ItemEntity> wanted = new HashSet<>();
         for (ItemEntity itemEntity : entities) {
             ItemStack worldItem = itemEntity.getItem();
             if (worldItem.isEmpty()) continue;
-            for (InventoryItemCategory category : inventoryManager.getCategorizer().categorize(worldItem)) {
-                Comparator<ItemStack> comparator = inventoryManager.getItemComparators().get(category);
-                switch (category) {
-                    case ARMOR -> {
-                        EquipmentSlot worldItemSlot = worldItem.get(DataComponents.EQUIPPABLE).slot();
-                        ItemStack invArmor = getInventoryManager().getBestArmorForSlot(worldItemSlot);
-                        if (comparator.compare(worldItem, invArmor) < 0) wantedItems.add(itemEntity);
-                    }
-                    case RANGED_WEAPON -> {
-                        if (inventoryManager.getInventoryEntry(InventoryItemCategory.RANGED_WEAPON).isEmpty())
-                            wantedItems.add(itemEntity);
-                    }
-                    case MELEE_WEAPON -> {
-                        if (comparator.compare(worldItem, inventoryManager.getFirstItemInEntry(category)) < 0)
-                            wantedItems.add(itemEntity);
-                    }
-                    case SHIELD_OR_SUPPORT -> {
-                        if (inventoryManager.getInventoryEntry(InventoryItemCategory.SHIELD_OR_SUPPORT).isEmpty())
-                            wantedItems.add(itemEntity);
-                    }
-                    case CONSUMABLE -> {
-                        if (!isEnoughForCare() || comparator.compare(worldItem, inventoryManager.getFirstItemInEntry(category)) < 0)
-                            wantedItems.add(itemEntity);
-                    }
+            for (ItemCategory category : inventoryManager.getCategorizer().categorize(worldItem)) {
+                ItemInspector inspector = getInventoryProfile().itemInspectors().get(category);
+                if (inspector != null && inspector.isWanted(this, worldItem, category, inventoryManager)) {
+                    wanted.add(itemEntity);
+                    break;
                 }
             }
         }
-        return wantedItems;
+        return new ArrayList<>(wanted);
     }
 
     @Override
     public void cleanInventory(int slotsToFree) {
-        CategoryCollector<InventoryItemCategory> armorStrategy = (items, count, trash, inv, category) -> {
-            Set<EquipmentSlot> set = EnumSet.noneOf(EquipmentSlot.class);
-            int total = 0;
-            for (int i : items) {
-                if (total >= count) return;
-                EquipmentSlot slot = getInventory().getItem(i).get(DataComponents.EQUIPPABLE).slot();
-                if (!set.contains(slot)) set.add(slot);
-                else {
-                    trash.add(i);
-                    ++total;
-                }
-            }
-        };
-        Map<InventoryItemCategory, CategoryCollector<InventoryItemCategory>> strategies = new EnumMap<>(InventoryItemCategory.class);
-        strategies.put(InventoryItemCategory.OTHER, (items, count, trash, inv, category) -> {
-            for (int i = 0; i < count; i++) {
-                if (items.size() - 1 - i < 0) break;
-                trash.add(items.get(items.size() - 1 - i));
-            }
-        });
-        strategies.put(InventoryItemCategory.ARMOR, armorStrategy);
-        Set<Integer> trashIndices = inventoryManager.getPotentialTrash(slotsToFree, strategies);
+        Set<Integer> trashIndices = inventoryManager.getPotentialTrash(slotsToFree, getInventoryProfile().inventoryConfig().cleanStrategies());
         throwItems(trashIndices, null, 1.0F, 40);
         trashIndices.forEach(i -> inventoryManager.getInventory().removeItem(i, inventoryManager.getInventory().getItem(i).getCount()));
     }
@@ -170,25 +146,22 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
 
     public void throwItems(Set<Integer> items, Vec3 dest, float f, int delay) {
         swing(InteractionHand.MAIN_HAND);
-        for (Integer i : items)
+        for (int i : items)
             throwItem(i, inventoryManager.getInventory().getItem(i).getCount(), dest, 0.3F, delay, false);
 
         inventoryManager.getInventory().setChanged();
     }
 
-    public void setUpArmor() {
-        Set<EquipmentSlot> equippedInThisTick = new HashSet<>();
-
-        List<Integer> armorIndices = new ArrayList<>(inventoryManager.getInventoryEntry(InventoryItemCategory.ARMOR));
-
+    public void prepareArmor() {
+        Set<EquipmentSlot> alreadyEquipped = new HashSet<>();
+        List<Integer> armorIndices = inventoryManager.getInventoryEntry(DwbItemCategories.ARMOR);
         for (int armorIndex : armorIndices) {
             ItemStack item = getInventory().getItem(armorIndex);
             if (item.isEmpty()) continue;
-
             EquipmentSlot slot = item.get(DataComponents.EQUIPPABLE).slot();
-            if (!equippedInThisTick.contains(slot)) {
+            if (!alreadyEquipped.contains(slot)) {
                 equipFromInventory(slot, armorIndex);
-                equippedInThisTick.add(slot);
+                alreadyEquipped.add(slot);
             }
         }
     }
@@ -225,14 +198,6 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
         equipFromInventory(EquipmentSlot.OFFHAND, InventoryManager.INVALID_INDEX);
     }
 
-    public boolean isEnoughForCare() {
-        int c = 0;
-        List<Integer> items = inventoryManager.getInventoryEntry(InventoryItemCategory.CONSUMABLE);
-        for (int item : items)
-            c += getInventory().getItem(item).getCount();
-        return c > 10;
-    }
-
     @Override
     protected void addAdditionalSaveData(ValueOutput valueOutput) {
         super.addAdditionalSaveData(valueOutput);
@@ -254,7 +219,6 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
     }
 
     public List<ItemEntity> getWantedItems() {
-        return this.wantedItems;
+        return wantedItems;
     }
-
 }

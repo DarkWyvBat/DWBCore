@@ -6,6 +6,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -62,5 +63,10 @@ public final class ItemUtils {
 
     private static boolean isAttribute(Holder<Attribute> a, Holder<Attribute> b) {
         return a.is(b.unwrapKey().orElseThrow());
+    }
+
+    public static int getNutrition(ItemStack itemStack) {
+        FoodProperties foodProperties = itemStack.get(DataComponents.FOOD);
+        return foodProperties == null ? 0 : foodProperties.nutrition();
     }
 }

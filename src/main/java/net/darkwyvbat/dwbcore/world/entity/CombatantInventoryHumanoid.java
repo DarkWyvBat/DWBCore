@@ -2,7 +2,7 @@ package net.darkwyvbat.dwbcore.world.entity;
 
 import net.darkwyvbat.dwbcore.tag.DwbItemTags;
 import net.darkwyvbat.dwbcore.world.entity.ai.WeaponActions;
-import net.darkwyvbat.dwbcore.world.entity.inventory.InventoryItemCategory;
+import net.darkwyvbat.dwbcore.world.entity.inventory.DwbItemCategories;
 import net.darkwyvbat.dwbcore.world.entity.inventory.InventoryManager;
 import net.darkwyvbat.dwbcore.world.entity.specs.OmniWarrior;
 import net.darkwyvbat.dwbcore.world.entity.specs.PotionAttacker;
@@ -24,15 +24,9 @@ public abstract class CombatantInventoryHumanoid extends AbstractInventoryHumano
         super(entityType, level);
     }
 
-    public void prepareForFight() {
-        prepareMelee();
-        setUpArmor();
-        prepareForAttackBlocking();
-    }
-
     @Override
     public boolean hasAttackPotions() {
-        return inventoryManager.entryNotEmpty(InventoryItemCategory.ATTACK_POTION);
+        return inventoryManager.entryNotEmpty(DwbItemCategories.ATTACK_POTION);
     }
 
     @Override
@@ -77,7 +71,7 @@ public abstract class CombatantInventoryHumanoid extends AbstractInventoryHumano
 
     @Override
     public boolean hasMelee() {
-        return inventoryManager.entryNotEmpty(InventoryItemCategory.MELEE_WEAPON);
+        return inventoryManager.entryNotEmpty(DwbItemCategories.MELEE_WEAPON);
     }
 
     @Override
@@ -87,12 +81,12 @@ public abstract class CombatantInventoryHumanoid extends AbstractInventoryHumano
 
     @Override
     public void prepareMelee() {
-        equipFromInventory(EquipmentSlot.MAINHAND, inventoryManager.getFirstIndexInEntry(InventoryItemCategory.MELEE_WEAPON));
+        equipFromInventory(EquipmentSlot.MAINHAND, inventoryManager.getFirstIndexInEntry(DwbItemCategories.MELEE_WEAPON));
     }
 
     @Override
     public boolean hasRanged() {
-        return inventoryManager.entryNotEmpty(InventoryItemCategory.RANGED_WEAPON);
+        return inventoryManager.entryNotEmpty(DwbItemCategories.RANGED_WEAPON);
     }
 
     @Override
@@ -102,7 +96,7 @@ public abstract class CombatantInventoryHumanoid extends AbstractInventoryHumano
 
     @Override
     public void prepareRanged() {
-        equipFromInventory(EquipmentSlot.MAINHAND, inventoryManager.getFirstIndexInEntry(InventoryItemCategory.RANGED_WEAPON));
+        equipFromInventory(EquipmentSlot.MAINHAND, inventoryManager.getFirstIndexInEntry(DwbItemCategories.RANGED_WEAPON));
     }
 
     @Override
@@ -113,7 +107,7 @@ public abstract class CombatantInventoryHumanoid extends AbstractInventoryHumano
 
     @Override
     public boolean hasAttackBlocker() {
-        return inventoryManager.entryNotEmpty(InventoryItemCategory.SHIELD_OR_SUPPORT);
+        return inventoryManager.entryNotEmpty(DwbItemCategories.SHIELD_OR_SUPPORT);
     }
 
     @Override
@@ -123,7 +117,7 @@ public abstract class CombatantInventoryHumanoid extends AbstractInventoryHumano
 
     @Override
     public void prepareForAttackBlocking() {
-        equipFromInventory(EquipmentSlot.OFFHAND, inventoryManager.getFirstIndexInEntry(InventoryItemCategory.SHIELD_OR_SUPPORT));
+        equipFromInventory(EquipmentSlot.OFFHAND, inventoryManager.getFirstIndexInEntry(DwbItemCategories.SHIELD_OR_SUPPORT));
     }
 
     @Override

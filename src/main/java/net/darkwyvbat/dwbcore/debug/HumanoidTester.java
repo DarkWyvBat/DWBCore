@@ -4,6 +4,7 @@ import net.darkwyvbat.dwbcore.util.time.Timeline;
 import net.darkwyvbat.dwbcore.world.entity.AbstractHumanoidEntity;
 import net.darkwyvbat.dwbcore.world.entity.CombatantInventoryHumanoid;
 import net.darkwyvbat.dwbcore.world.entity.GrowableMob;
+import net.darkwyvbat.dwbcore.world.entity.ai.ItemInspectors;
 import net.darkwyvbat.dwbcore.world.entity.ai.combat.CombatStrategyManager;
 import net.darkwyvbat.dwbcore.world.entity.ai.combat.DwbCombatConfigs;
 import net.darkwyvbat.dwbcore.world.entity.ai.combat.strategy.*;
@@ -14,6 +15,11 @@ import net.darkwyvbat.dwbcore.world.entity.ai.opinion.DwbOpinions;
 import net.darkwyvbat.dwbcore.world.entity.ai.opinion.Reputation;
 import net.darkwyvbat.dwbcore.world.entity.ai.perception.PerceptionCenter;
 import net.darkwyvbat.dwbcore.world.entity.ai.perception.PerceptionProfile;
+import net.darkwyvbat.dwbcore.world.entity.inventory.DefaultItemCategorizer;
+import net.darkwyvbat.dwbcore.world.entity.inventory.DwbItemCategories;
+import net.darkwyvbat.dwbcore.world.entity.inventory.MobInventoryProfile;
+import net.darkwyvbat.dwbcore.world.entity.inventory.preset.InventoryCleanStrategies;
+import net.darkwyvbat.dwbcore.world.entity.inventory.preset.ItemComparators;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -25,10 +31,12 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
+// TODO + profile
 public class HumanoidTester extends CombatantInventoryHumanoid implements GrowableMob<HumanoidTester> {
 
     private static final EntityDataAccessor<Boolean> DATA_BABY_ID = SynchedEntityData.defineId(HumanoidTester.class, EntityDataSerializers.BOOLEAN);
@@ -36,12 +44,31 @@ public class HumanoidTester extends CombatantInventoryHumanoid implements Growab
 
     private final Timeline<HumanoidTester> timeline = new Timeline<>(this);
 
+    private static final MobInventoryProfile INVENTORY_PROFILE = MobInventoryProfile.builder(new DefaultItemCategorizer())
+            .comparator(DwbItemCategories.MELEE_WEAPON, ItemComparators.ATTACK_DAMAGE)
+            .comparator(DwbItemCategories.ARMOR, ItemComparators.BASIC_ARMOR_STATS)
+            .leastImportant(DwbItemCategories.OTHER)
+            .cleanStrategy(DwbItemCategories.ARMOR, InventoryCleanStrategies.ARMOR)
+            .thenImportant(DwbItemCategories.ARMOR)
+            .thenImportant(DwbItemCategories.MELEE_WEAPON)
+            .inspector(DwbItemCategories.MELEE_WEAPON, ItemInspectors.ITEM_UPGRADE)
+            .inspector(DwbItemCategories.RANGED_WEAPON, ItemInspectors.FILL_EMPTY_SLOT)
+            .inspector(DwbItemCategories.SHIELD_OR_SUPPORT, ItemInspectors.FILL_EMPTY_SLOT)
+            .inspector(DwbItemCategories.ARMOR, ItemInspectors.ARMOR_UPGRADE)
+            .item(Items.IRON_AXE)
+            .build();
+
     public HumanoidTester(EntityType<? extends HumanoidTester> entityType, Level level) {
         super(entityType, level);
         moveControl = new HumanoidLikeMoveControl(this);
         navigation = new HumanoidLikePathNavigation(this, level);
         defineTimeline();
         timeline.init();
+    }
+
+    @Override
+    protected MobInventoryProfile getInventoryProfile() {
+        return INVENTORY_PROFILE;
     }
 
     @Override
@@ -124,8 +151,8 @@ public class HumanoidTester extends CombatantInventoryHumanoid implements Growab
     @Override
     public void setBaby(boolean bl) {
         this.getEntityData().set(DATA_BABY_ID, bl);
-        if (!this.level().isClientSide()) {
-            AttributeInstance attributeInstance = this.getAttribute(Attributes.MOVEMENT_SPEED);
+        if (!level().isClientSide()) {
+            AttributeInstance attributeInstance = getAttribute(Attributes.MOVEMENT_SPEED);
             attributeInstance.removeModifier(SPEED_MODIFIER_BABY.id());
             if (bl) {
                 attributeInstance.addTransientModifier(SPEED_MODIFIER_BABY);
@@ -141,7 +168,7 @@ public class HumanoidTester extends CombatantInventoryHumanoid implements Growab
     @Override
     public void onSyncedDataUpdated(EntityDataAccessor<?> entityDataAccessor) {
         if (DATA_BABY_ID.equals(entityDataAccessor))
-            this.refreshDimensions();
+            refreshDimensions();
         super.onSyncedDataUpdated(entityDataAccessor);
     }
 

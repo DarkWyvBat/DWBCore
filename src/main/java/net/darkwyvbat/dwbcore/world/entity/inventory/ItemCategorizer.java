@@ -4,8 +4,6 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.Set;
 
-public interface ItemCategorizer<C extends Enum<C>> {
-    Set<C> categorize(ItemStack item);
-
-    Class<C> getCategoryClass();
+public interface ItemCategorizer {
+    Set<ItemCategory> categorize(ItemStack item);
 }

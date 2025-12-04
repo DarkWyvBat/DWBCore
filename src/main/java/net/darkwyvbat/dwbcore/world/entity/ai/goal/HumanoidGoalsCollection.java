@@ -3,36 +3,11 @@ package net.darkwyvbat.dwbcore.world.entity.ai.goal;
 import net.darkwyvbat.dwbcore.util.PoorRandom;
 import net.darkwyvbat.dwbcore.world.entity.AbstractHumanoidEntity;
 import net.darkwyvbat.dwbcore.world.entity.AbstractInventoryHumanoid;
-import net.darkwyvbat.dwbcore.world.entity.CombatantInventoryHumanoid;
-import net.darkwyvbat.dwbcore.world.entity.MobState;
 import net.darkwyvbat.dwbcore.world.entity.ai.perception.ActivityState;
-import net.darkwyvbat.dwbcore.world.entity.inventory.InventoryItemCategory;
+import net.darkwyvbat.dwbcore.world.entity.inventory.DwbItemCategories;
 import net.minecraft.world.entity.ai.goal.Goal;
 
 public class HumanoidGoalsCollection {
-    public static class BeOnGuardGoal extends Goal {
-        protected final CombatantInventoryHumanoid mob;
-
-        public BeOnGuardGoal(CombatantInventoryHumanoid mob) {
-            this.mob = mob;
-        }
-
-        @Override
-        public boolean canUse() {
-            return (mob.getPerception().getLastScan().dangerAround() > 20 || mob.isAggressive()) && !mob.isUsingItem() && mob.shouldRevisionItems;
-        }
-
-        @Override
-        public boolean canContinueToUse() {
-            return false;
-        }
-
-        @Override
-        public void start() {
-            mob.prepareForFight();
-            mob.shouldRevisionItems = false;
-        }
-    }
 
     public static class RandomDisarm extends LazyStartGoal {
         protected final AbstractHumanoidEntity mob;
@@ -55,25 +30,6 @@ public class HumanoidGoalsCollection {
         @Override
         public void start() {
             mob.disarm();
-        }
-    }
-
-    public static class RandomChillGoal extends LazyStartGoal {
-        protected final AbstractHumanoidEntity mob;
-
-        public RandomChillGoal(AbstractHumanoidEntity mob, int checkInterval) {
-            super(checkInterval);
-            this.mob = mob;
-        }
-
-        @Override
-        public boolean mainCanUse() {
-            return mob.getNavigation().isDone() && mob.getPerception().getProfile().getState().isLess(ActivityState.REGULAR) && mob.onGround() && !mob.isSleeping();
-        }
-
-        @Override
-        public void start() {
-            mob.setMobState(MobState.SITTING);
         }
     }
 
@@ -109,13 +65,12 @@ public class HumanoidGoalsCollection {
 
         @Override
         public boolean canUse() {
-            return mob.getInventoryManager().getInventoryEntry(InventoryItemCategory.OTHER).size() > mob.getInventory().items.size() / 2;
+            return mob.getInventoryManager().getInventoryEntry(DwbItemCategories.OTHER).size() > mob.getInventory().items.size() / 2;
         }
 
         @Override
         public void start() {
-            mob.cleanInventory(mob.getInventoryManager().getInventoryEntry(InventoryItemCategory.OTHER).size());
+            mob.cleanInventory(mob.getInventoryManager().getInventoryEntry(DwbItemCategories.OTHER).size());
         }
     }
 }
-
