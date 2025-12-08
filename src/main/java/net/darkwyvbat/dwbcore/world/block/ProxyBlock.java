@@ -33,7 +33,7 @@ public class ProxyBlock extends BaseEntityBlock {
     public static final EnumProperty<Direction> FACING_PROPERTY = BlockStateProperties.FACING;
     public static final EnumProperty<Appearance> APPEARANCE_PROPERTY = EnumProperty.create("appearance", Appearance.class);
 
-    public static final String POOL_TAG = "Pool";
+    public static final String POOL_TAG = "pool";
     public static final Map<String, ProxyBlockPool> POOLS = new HashMap<>();
 
     @Override

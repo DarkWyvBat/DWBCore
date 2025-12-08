@@ -29,7 +29,7 @@ public record SpawnEntityAction(EntityType<?> entityType, Optional<CompoundTag> 
 
         Entity entity = entityType.create(level, EntitySpawnReason.STRUCTURE);
         if (entity != null) {
-            this.nbt.ifPresent(t -> entity.load(TagValueInput.create(null, level.registryAccess(), t)));
+            nbt.ifPresent(t -> entity.load(TagValueInput.create(null, level.registryAccess(), t)));
             entity.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
             level.addFreshEntity(entity);
             level.removeBlock(pos, true);
