@@ -37,8 +37,8 @@ public class KitingStrategy extends CombatStrategy {
         WeaponCombatUsage.tryRanged(state, InteractionHand.MAIN_HAND);
         if (state.isPathCooldownReady() && state.canSeeTarget()) {
             Vec3 dir = MovementHelper.calcRetreat(mob, state.getTarget());
-            if (MovementHelper.isSafeRetreat(mob, dir, 1.2)) {
-                MovementHelper.doRetreat(mob, dir);
+            if (MovementHelper.isSafeRetreat(mob, dir, 1.1)) {
+                MovementHelper.doRetreat(mob, dir, 0.2); //TODO MoveControl
             } else {
                 if (state.isPathCooldownReady()) {
                     MovementHelper.tryPathAwayEntity((PathfinderMob) mob, mob.getTarget());
