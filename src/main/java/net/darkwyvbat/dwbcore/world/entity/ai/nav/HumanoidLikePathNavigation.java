@@ -1,24 +1,25 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.nav;
 
+import net.darkwyvbat.dwbcore.lowzone.NodeExtension;
 import net.darkwyvbat.dwbcore.world.entity.Crouchable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.navigation.AmphibiousPathNavigation;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.pathfinder.*;
+import net.minecraft.world.level.pathfinder.Node;
+import net.minecraft.world.level.pathfinder.Path;
+import net.minecraft.world.level.pathfinder.PathFinder;
+import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
-
     protected boolean canOpenDoors = true;
     protected boolean canPassDoors = true;
     protected boolean canOpenGates = true;
-    private BlockPos lastLadderCheckPos = BlockPos.ZERO;
-    private boolean lastLadderCheck = false;
     private boolean pathCrouchState = false;
 
     public HumanoidLikePathNavigation(Mob mob, Level level) {
@@ -69,23 +70,7 @@ public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
     @Override
     protected @NotNull Vec3 getTempMobPos() {
         BlockPos pos = mob.blockPosition();
-        if (pos.equals(lastLadderCheckPos))
-            return lastLadderCheck ? Vec3.atCenterOf(pos) : super.getTempMobPos();
-
-        lastLadderCheckPos = pos;
-        if (level.getBlockState(pos).is(BlockTags.CLIMBABLE)) {
-            lastLadderCheck = true;
-            return Vec3.atCenterOf(pos);
-        }
-        if (level.getBlockState(pos).isAir())
-            for (Direction dir : Direction.Plane.HORIZONTAL) {
-                BlockPos blockPos = pos.relative(dir);
-                if (level.getBlockState(blockPos).is(BlockTags.CLIMBABLE)) {
-                    lastLadderCheck = true;
-                    return Vec3.atCenterOf(blockPos);
-                }
-            }
-        lastLadderCheck = false;
+        if (level.getBlockState(pos).is(BlockTags.CLIMBABLE)) return Vec3.atCenterOf(pos);
         return super.getTempMobPos();
     }
 
@@ -94,9 +79,9 @@ public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
         if (path != null && this.path != null && !this.path.isDone() && !path.isDone()) {
             Node oldNext = this.path.getNextNode();
             Node oldPrev = this.path.getPreviousNode();
-            if (oldNext.type == PathType.COCOA && path.getNextNode().type == PathType.COCOA)
+            if (isClimbNode(oldNext) && isClimbNode(path.getNextNode()))
                 syncIndexByNode(path, oldNext);
-            else if (oldPrev != null && oldPrev.type == PathType.COCOA && path.getNextNode().type != PathType.COCOA) {
+            else if (isClimbNode(oldPrev) && !isClimbNode(path.getNextNode())) {
                 syncIndexByNode(path, oldNext);
                 if (path.getNextNodeIndex() == 0)
                     syncIndexByNode(path, oldPrev);
@@ -114,24 +99,22 @@ public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
 
         Vec3 pos = mob.position();
         Node nextNode = path.getNextNode(), prevNode = path.getPreviousNode();
-        if (mob instanceof Crouchable crouchable && crouchable.isCrouching() == pathCrouchState) {
-            pathCrouchState = nextNode.type == HumanoidLikeNodeEvaluator.CROUCH_PATH_TYPE || prevNode != null && prevNode.type == HumanoidLikeNodeEvaluator.CROUCH_PATH_TYPE;
-            crouchable.setCrouch(pathCrouchState);
-        }
-        boolean nextIsLadder = nextNode.type == PathType.COCOA;
-        boolean prevIsLadder = prevNode != null && prevNode.type == PathType.COCOA;
-        if (nextIsLadder || prevIsLadder) {
-            Vec3 target = nextIsLadder ? Vec3.atBottomCenterOf(nextNode.asBlockPos()) : path.getNextEntityPos(mob);
-            if (pos.distanceToSqr(target.x, pos.y, target.z) < (nextIsLadder ? 0.4 : 0.04)) {
+        if (mob instanceof Crouchable crouchable && crouchable.isCrouching() == pathCrouchState)
+            crouchable.setCrouch(pathCrouchState = isCrouchNode(nextNode) || isCrouchNode(prevNode));
+        boolean nextIsClimb = isClimbNode(nextNode);
+        boolean prevIsClimb = isClimbNode(prevNode);
+        if (nextIsClimb || prevIsClimb) {
+            Vec3 target = nextIsClimb ? Vec3.atBottomCenterOf(nextNode.asBlockPos()) : path.getNextEntityPos(mob);
+            if (pos.distanceToSqr(target.x, pos.y, target.z) < (nextIsClimb ? 1.0 : 0.1)) {
                 boolean advance;
-                if (nextIsLadder && prevIsLadder) {
-                    if (nextNode.y > prevNode.y) advance = pos.y >= nextNode.y - 0.05;
+                if (nextIsClimb && prevIsClimb) {
+                    if (nextNode.y > prevNode.y) advance = pos.y >= nextNode.y - 0.1;
                     else if (nextNode.y < prevNode.y) advance = pos.y <= nextNode.y + 0.2;
                     else advance = Math.abs(pos.y - nextNode.y) < 0.3;
-                } else if (nextIsLadder)
+                } else if (nextIsClimb)
                     advance = Math.abs(pos.y - nextNode.y) < 0.8;
                 else
-                    advance = mob.onGround() || Math.abs(pos.y - WalkNodeEvaluator.getFloorLevel(level, nextNode.asBlockPos())) < 0.1;
+                    advance = mob.onGround() || Math.abs(pos.y - WalkNodeEvaluator.getFloorLevel(level, nextNode.asBlockPos())) < 0.25;
 
                 if (advance) path.advance();
             }
@@ -146,11 +129,9 @@ public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
     }
 
     private void stopNavigation() {
-        if (mob.getMoveControl() instanceof FeaturedMoveControl featuredMoveControl) {
-            featuredMoveControl.setWantedPosition(mob.getX(), mob.getY(), mob.getZ(), 0);
-            featuredMoveControl.setWait();
-        } else if (mob.getMoveControl().hasWanted())
-            mob.getMoveControl().setWantedPosition(mob.getX(), mob.getY(), mob.getZ(), 0);
+        MoveControl moveControl = mob.getMoveControl();
+        moveControl.setWantedPosition(mob.getX(), mob.getY(), mob.getZ(), 0);
+        moveControl.setWait();
     }
 
     private void syncIndexByNode(Path path, Node targetNode) {
@@ -175,5 +156,13 @@ public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
                 path.setNextNodeIndex(i);
                 return;
             }
+    }
+
+    public static boolean isClimbNode(Node node) {
+        return node != null && ((NodeExtension) node).dwbcore_getType().isClimb();
+    }
+
+    public static boolean isCrouchNode(Node node) {
+        return node != null && ((NodeExtension) node).dwbcore_getType().isCrouch();
     }
 }

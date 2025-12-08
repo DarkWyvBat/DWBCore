@@ -3,7 +3,8 @@
 	"package": "net.darkwyvbat.dwbcore.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-      "LivingEntityMixin"
+      "LivingEntityMixin",
+      "NodeMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

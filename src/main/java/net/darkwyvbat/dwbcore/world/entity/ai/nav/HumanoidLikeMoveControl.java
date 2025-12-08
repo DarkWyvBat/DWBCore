@@ -10,7 +10,6 @@ import net.minecraft.world.level.block.LadderBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
-import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.Vec3;
 
 public class HumanoidLikeMoveControl extends FeaturedMoveControl {
@@ -37,8 +36,8 @@ public class HumanoidLikeMoveControl extends FeaturedMoveControl {
             Path path = mob.getNavigation().getPath();
             if (path != null && !path.isDone()) {
                 Node next = path.getNextNode(), prev = path.getPreviousNode();
-                boolean isNextClimb = next.type == PathType.COCOA;
-                boolean isPrevClimb = prev != null && prev.type == PathType.COCOA;
+                boolean isNextClimb = HumanoidLikePathNavigation.isClimbNode(next);
+                boolean isPrevClimb = HumanoidLikePathNavigation.isClimbNode(prev);
                 if (isNextClimb) {
                     state = isPrevClimb ? 2 : 1;
                     climbPos = next.asBlockPos();
@@ -63,7 +62,9 @@ public class HumanoidLikeMoveControl extends FeaturedMoveControl {
         mob.setXRot(0.0F);
 
         double dY, tX, tZ;
-        double dyNorm = wantedY - mob.getY() > 0.05 ? UP : wantedY - mob.getY() < -0.05 ? -DOWN : 0;
+        double upThreshold = (state == 3) ? 0.2 : 0.05;
+        double yD = wantedY - mob.getY();
+        double dyNorm = yD > upThreshold ? UP : yD < -0.05 ? -DOWN : 0;
         if (state < 3) {
             tX = climbPos.getX() + 0.5;
             tZ = climbPos.getZ() + 0.5;

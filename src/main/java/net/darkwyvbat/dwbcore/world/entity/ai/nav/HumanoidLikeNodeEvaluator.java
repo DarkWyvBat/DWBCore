@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.longs.Long2BooleanMap;
 import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import net.darkwyvbat.dwbcore.lowzone.NodeExtension;
 import net.darkwyvbat.dwbcore.world.entity.Crouchable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -11,7 +12,6 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.PathNavigationRegion;
 import net.minecraft.world.level.block.FenceGateBlock;
-import net.minecraft.world.level.block.LadderBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.AmphibiousNodeEvaluator;
 import net.minecraft.world.level.pathfinder.Node;
@@ -21,13 +21,9 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
 public class HumanoidLikeNodeEvaluator extends AmphibiousNodeEvaluator {
-
-    //TODO temp test, reimpl
-    public static final PathType CROUCH_PATH_TYPE = PathType.DAMAGE_CAUTIOUS;
-
+    private final Long2BooleanMap crouchCache = new Long2BooleanOpenHashMap();
+    private final Long2ObjectMap<DwbPathType> typeCache = new Long2ObjectOpenHashMap<>();
     protected boolean canOpenGates;
-    private final Long2BooleanMap collisionCache = new Long2BooleanOpenHashMap();
-    private final Long2ObjectMap<PathType> ladderCache = new Long2ObjectOpenHashMap<>();
     private int cacheReset = 0;
 
     public HumanoidLikeNodeEvaluator(boolean prefersShallowSwimming) {
@@ -42,8 +38,6 @@ public class HumanoidLikeNodeEvaluator extends AmphibiousNodeEvaluator {
     public void prepare(PathNavigationRegion region, Mob mob) {
         super.prepare(region, mob);
         mob.setPathfindingMalus(PathType.WATER, 1.0F);
-        mob.setPathfindingMalus(PathType.COCOA, 1.0F);
-        mob.setPathfindingMalus(CROUCH_PATH_TYPE, 2.0F);
         mob.setPathfindingMalus(PathType.UNPASSABLE_RAIL, 0.0F);
 
         if (mob.getNavigation() instanceof HumanoidLikePathNavigation nav) {
@@ -53,8 +47,8 @@ public class HumanoidLikeNodeEvaluator extends AmphibiousNodeEvaluator {
         }
 
         if (++cacheReset > 100) {
-            collisionCache.clear();
-            ladderCache.clear();
+            crouchCache.clear();
+            typeCache.clear();
             cacheReset = 0;
         }
     }
@@ -66,96 +60,126 @@ public class HumanoidLikeNodeEvaluator extends AmphibiousNodeEvaluator {
         if (!(mob instanceof Crouchable crouchable) || !crouchable.canCrouch()) return PathType.BLOCKED;
 
         long key = BlockPos.asLong(x, y, z);
-        if (collisionCache.containsKey(key)) return collisionCache.get(key) ? CROUCH_PATH_TYPE : PathType.BLOCKED;
+        if (crouchCache.containsKey(key)) return crouchCache.get(key) ? PathType.WALKABLE : PathType.BLOCKED;
         int origHeight = entityHeight;
         entityHeight = 1;
-        PathType floorLevelType = super.getPathTypeOfMob(context, x, y, z, mob);
+        PathType crouchType = super.getPathTypeOfMob(context, x, y, z, mob);
         entityHeight = origHeight;
 
-        if (floorLevelType == PathType.WALKABLE_DOOR) {
-            collisionCache.put(key, true);
-            return floorLevelType;
+        boolean canPass = false;
+        if (crouchType != PathType.BLOCKED && crouchType != PathType.OPEN) {
+            double floorY = getFloorLevel(new BlockPos(x, y, z));
+            AABB aabb = crouchable.getCrouchDimension().makeBoundingBox(x + 0.5, floorY, z + 0.5);
+            canPass = context.level().noCollision(mob, aabb);
         }
-        double floorY = getFloorLevel(new BlockPos(x, y, z));
-        AABB aabb = crouchable.getCrouchDimension().makeBoundingBox(x + 0.5, floorY, z + 0.5);
-        boolean canPass = context.level().noCollision(mob, aabb);
-        collisionCache.put(key, canPass);
-
-        return canPass ? CROUCH_PATH_TYPE : PathType.BLOCKED;
+        crouchCache.put(key, canPass);
+        return canPass ? crouchType : PathType.BLOCKED;
     }
 
     @Override
     public @NotNull PathType getPathType(PathfindingContext ctx, int x, int y, int z) {
         long key = BlockPos.asLong(x, y, z);
-        PathType pathType = ladderCache.get(key);
-        if (pathType != null) return pathType;
+        if (typeCache.containsKey(key)) return typeCache.get(key).getFallback();
 
         BlockState state = ctx.getBlockState(new BlockPos(x, y, z));
-        PathType result;
-        if (state.is(BlockTags.CLIMBABLE))
-            result = PathType.COCOA;
-        else if (canOpenGates && state.getBlock() instanceof FenceGateBlock)
-            result = PathType.WALKABLE_DOOR;
+        DwbPathType type = DwbPathType.NONE;
+        PathType vanilla;
+        if (state.is(BlockTags.CLIMBABLE)) {
+            type = DwbPathTypes.CLIMB;
+            vanilla = type.getFallback();
+        } else if (canOpenGates && state.getBlock() instanceof FenceGateBlock)
+            vanilla = PathType.WALKABLE_DOOR;
         else
-            result = super.getPathType(ctx, x, y, z);
-        ladderCache.put(key, result);
+            vanilla = super.getPathType(ctx, x, y, z);
 
-        return result;
+        if (type != DwbPathType.NONE) typeCache.put(key, type);
+        return vanilla;
     }
 
     @Override
     public int getNeighbors(Node[] neighbors, Node node) {
+        ensureNodeType(node);
         int count = super.getNeighbors(neighbors, node);
-        PathType nodeType = getCachedPathType(node.x, node.y, node.z);
+        DwbPathType nodeType = ((NodeExtension) node).dwbcore_getType();
 
-        if (nodeType == PathType.COCOA) {
-            count = addNode(neighbors, count, getLadderNode(node.x, node.y + 1, node.z));
-            count = addNode(neighbors, count, getLadderNode(node.x, node.y - 1, node.z));
+        if (nodeType.isClimb()) {
+            count = addNode(neighbors, count, getClimbNode(node.x, node.y + 1, node.z));
+            count = addNode(neighbors, count, getClimbNode(node.x, node.y - 1, node.z));
             BlockPos pos = node.asBlockPos();
             if (currentContext.getBlockState(pos.above()).isAir())
-                count = addNode(neighbors, count, getPotentialNde(node.x, node.y + 1, node.z));
-
-            BlockState state = currentContext.getBlockState(pos);
-            if (state.getBlock() instanceof LadderBlock) { //TODO vines
-                Direction face = state.getValue(LadderBlock.FACING).getOpposite();
-                count = addNode(neighbors, count, getPotentialNde(node.x + face.getStepX(), node.y, node.z + face.getStepZ()));
+                count = addNode(neighbors, count, getPotentialNode(node.x, node.y + 1, node.z));
+            for (Direction dir : Direction.Plane.HORIZONTAL) {
+                Node neighbor = getPotentialNode(node.x + dir.getStepX(), node.y, node.z + dir.getStepZ());
+                if (neighbor != null && !((NodeExtension) neighbor).dwbcore_getType().isClimb())
+                    count = addNode(neighbors, count, neighbor);
             }
         } else {
             BlockPos pos = node.asBlockPos();
             for (Direction dir : Direction.Plane.HORIZONTAL) {
                 BlockPos check = pos.relative(dir);
                 if (currentContext.getBlockState(check).is(BlockTags.CLIMBABLE))
-                    count = addNode(neighbors, count, getLadderNode(check.getX(), check.getY(), check.getZ()));
+                    count = addNode(neighbors, count, getClimbNode(check.getX(), check.getY(), check.getZ()));
             }
             BlockPos below = pos.below();
             if (currentContext.getBlockState(below).is(BlockTags.CLIMBABLE))
-                count = addNode(neighbors, count, getLadderNode(below.getX(), below.getY(), below.getZ()));
+                count = addNode(neighbors, count, getClimbNode(below.getX(), below.getY(), below.getZ()));
         }
         return count;
     }
 
-    private Node getLadderNode(int x, int y, int z) {
-        if (getCachedPathType(x, y, z) == PathType.COCOA || currentContext.getBlockState(new BlockPos(x, y, z)).is(BlockTags.CLIMBABLE)) {
+    private void ensureNodeType(Node node) {
+        if (((NodeExtension) node).dwbcore_getType() != DwbPathType.NONE) return;
+
+        long key = BlockPos.asLong(node.x, node.y, node.z);
+        if (typeCache.containsKey(key) && typeCache.get(key).isClimb()) {
+            ((NodeExtension) node).dwbcore_setType(DwbPathTypes.CLIMB);
+            node.costMalus = DwbPathTypes.CLIMB.getMalus();
+            return;
+        }
+        if (currentContext.getBlockState(node.asBlockPos()).is(BlockTags.CLIMBABLE)) {
+            ((NodeExtension) node).dwbcore_setType(DwbPathTypes.CLIMB);
+            node.costMalus = DwbPathTypes.CLIMB.getMalus();
+            typeCache.put(key, DwbPathTypes.CLIMB);
+            return;
+        }
+        if (crouchCache.get(key)) {
+            ((NodeExtension) node).dwbcore_setType(DwbPathTypes.CROUCH);
+            node.costMalus = DwbPathTypes.CROUCH.getMalus();
+        }
+    }
+
+    private Node getClimbNode(int x, int y, int z) {
+        long key = BlockPos.asLong(x, y, z);
+        if (typeCache.get(key) == DwbPathTypes.CLIMB || currentContext.getBlockState(new BlockPos(x, y, z)).is(BlockTags.CLIMBABLE)) {
             Node node = getNode(x, y, z);
-            node.type = PathType.COCOA;
-            node.costMalus = mob.getPathfindingMalus(PathType.COCOA);
+            ((NodeExtension) node).dwbcore_setType(DwbPathTypes.CLIMB);
+            node.type = DwbPathTypes.CLIMB.getFallback();
+            node.costMalus = DwbPathTypes.CLIMB.getMalus();
             return node;
         }
         return null;
     }
 
-    private Node getPotentialNde(int x, int y, int z) {
+    private Node getPotentialNode(int x, int y, int z) {
         PathType type = getCachedPathType(x, y, z);
-        if (type != PathType.WALKABLE && type != PathType.OPEN && type != CROUCH_PATH_TYPE && type != PathType.WALKABLE_DOOR)
-            return null;
+        long key = BlockPos.asLong(x, y, z);
+        boolean isCrouch = crouchCache.get(key);
+        if (type == PathType.BLOCKED && isCrouch) type = DwbPathTypes.CROUCH.getFallback();
+        if (type != PathType.WALKABLE && type != PathType.OPEN && type != PathType.WALKABLE_DOOR) return null;
         if (type == PathType.OPEN) {
             PathType below = getCachedPathType(x, y - 1, z);
             if (below.getMalus() < 0.0F && below != PathType.WATER && below != PathType.LAVA)
                 return null;
         }
         Node node = getNode(x, y, z);
+        if (isCrouch) {
+            ((NodeExtension) node).dwbcore_setType(DwbPathTypes.CROUCH);
+            node.costMalus = DwbPathTypes.CROUCH.getMalus();
+        } else {
+            ((NodeExtension) node).dwbcore_setType(DwbPathType.NONE);
+            node.costMalus = mob.getPathfindingMalus(type);
+        }
         node.type = type;
-        node.costMalus = mob.getPathfindingMalus(type);
         return node;
     }
 
