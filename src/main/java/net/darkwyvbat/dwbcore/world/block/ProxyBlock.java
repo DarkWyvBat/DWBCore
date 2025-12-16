@@ -1,6 +1,7 @@
 package net.darkwyvbat.dwbcore.world.block;
 
 import com.mojang.serialization.MapCodec;
+import net.darkwyvbat.dwbcore.world.block.entity.DwbBlockEntityType;
 import net.darkwyvbat.dwbcore.world.block.entity.ProxyBlockEntity;
 import net.darkwyvbat.dwbcore.world.gen.proxyblock.ProxyBlockPool;
 import net.minecraft.core.BlockPos;
@@ -15,6 +16,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -47,17 +50,16 @@ public class ProxyBlock extends BaseEntityBlock {
     }
 
     @Override
-    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState prevState, boolean isMoving) {
-        super.onPlace(state, level, pos, prevState, isMoving);
-
-        if (state.getValue(EXECUTE_PROPERTY))
-            level.scheduleTick(pos, this, 4);
-    }
-
-    @Override
-    public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if (state.getValue(EXECUTE_PROPERTY))
-            executeSpawnLogic(level, pos, random);
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState blockState, BlockEntityType<T> blockEntityType) {
+        if (level.isClientSide()) return null;
+        return createTickerHelper(blockEntityType, DwbBlockEntityType.PROXY_BLOCK, (lvl, bp, st, be) -> {
+            if (st.getValue(EXECUTE_PROPERTY)) {
+                executeSpawnLogic((ServerLevel) lvl, bp, lvl.getRandom());
+                BlockState newState = lvl.getBlockState(bp);
+                if (newState.is(this) && newState.getValue(EXECUTE_PROPERTY))
+                    lvl.setBlock(bp, newState.setValue(EXECUTE_PROPERTY, false), 3);
+            }
+        });
     }
 
     private void executeSpawnLogic(ServerLevel level, BlockPos pos, RandomSource random) {
