@@ -5,28 +5,33 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.darkwyvbat.dwbcore.world.block.ProxyBlock;
 import net.darkwyvbat.dwbcore.world.gen.proxyblock.ProxyBlockAction;
+import net.darkwyvbat.dwbcore.world.gen.proxyblock.ProxyBlockActionOps;
 import net.darkwyvbat.dwbcore.world.gen.proxyblock.ProxyBlockActionType;
 import net.darkwyvbat.dwbcore.world.gen.proxyblock.ProxyBlockActionTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.storage.TagValueInput;
 
+import java.util.List;
 import java.util.Optional;
 
 public record PlaceBlockAction(BlockState blockState, Optional<CompoundTag> nbt,
-                               boolean copyFacing) implements ProxyBlockAction {
+                               boolean copyFacing, List<ResourceLocation> ops) implements ProxyBlockAction {
 
     public static final MapCodec<PlaceBlockAction> CODEC = RecordCodecBuilder.mapCodec(i ->
             i.group(
                     BlockState.CODEC.fieldOf("block_state").forGetter(PlaceBlockAction::blockState),
                     TagParser.FLATTENED_CODEC.optionalFieldOf("nbt").forGetter(PlaceBlockAction::nbt),
-                    Codec.BOOL.optionalFieldOf("copy_facing", false).forGetter(PlaceBlockAction::copyFacing)
+                    Codec.BOOL.optionalFieldOf("copy_facing", false).forGetter(PlaceBlockAction::copyFacing),
+                    ResourceLocation.CODEC.listOf().optionalFieldOf("ops", List.of()).forGetter(PlaceBlockAction::ops)
             ).apply(i, PlaceBlockAction::new)
     );
 
@@ -44,7 +49,7 @@ public record PlaceBlockAction(BlockState blockState, Optional<CompoundTag> nbt,
                 finalState = finalState.setValue((Property<Direction>) property, sourceDirection);
         }
         level.setBlock(pos, finalState, 3);
-        this.nbt.ifPresent(t -> {
+        nbt.ifPresent(t -> {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity != null) {
                 CompoundTag nbtToLoad = t.copy();
@@ -55,6 +60,11 @@ public record PlaceBlockAction(BlockState blockState, Optional<CompoundTag> nbt,
                 blockEntity.setChanged();
             }
         });
+        if (!ops.isEmpty()) {
+            BlockInWorld blockInWorld = new BlockInWorld(level, pos, true);
+            for (ResourceLocation id : ops)
+                ProxyBlockActionOps.run(id, blockInWorld);
+        }
     }
 
     @Override

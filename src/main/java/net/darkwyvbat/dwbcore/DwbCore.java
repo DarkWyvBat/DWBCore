@@ -8,6 +8,7 @@ import net.darkwyvbat.dwbcore.util.ModInfo;
 import net.darkwyvbat.dwbcore.world.block.DwbBlocks;
 import net.darkwyvbat.dwbcore.world.block.entity.DwbBlockEntityType;
 import net.darkwyvbat.dwbcore.world.gen.DwbStructureProcessorType;
+import net.darkwyvbat.dwbcore.world.gen.proxyblock.ProxyBlockActionOps;
 import net.darkwyvbat.dwbcore.world.gen.proxyblock.ProxyBlockActionTypes;
 import net.darkwyvbat.dwbcore.world.item.DwbItems;
 import net.fabricmc.api.ModInitializer;
@@ -36,5 +37,6 @@ public class DwbCore implements ModInitializer {
         ProxyBlockActionTypes.init();
         DwbItems.init();
         DwbStructureProcessorType.init();
+        ProxyBlockActionOps.init();
     }
 }
