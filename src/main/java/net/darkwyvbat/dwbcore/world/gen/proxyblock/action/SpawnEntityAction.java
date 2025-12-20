@@ -15,6 +15,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.storage.TagValueInput;
 
 import java.util.List;
@@ -41,7 +42,8 @@ public record SpawnEntityAction(EntityType<?> entityType, Optional<CompoundTag> 
             entity.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
             for (ResourceLocation id : ops)
                 ProxyBlockActionOps.run(id, entity);
-
+            if (entity instanceof Mob mob)
+                mob.finalizeSpawn(level, level.getCurrentDifficultyAt(mob.blockPosition()), EntitySpawnReason.STRUCTURE, null);
             level.addFreshEntity(entity);
             level.removeBlock(pos, true);
         }
