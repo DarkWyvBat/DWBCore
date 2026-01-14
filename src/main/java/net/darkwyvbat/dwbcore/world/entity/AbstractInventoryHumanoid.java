@@ -1,5 +1,6 @@
 package net.darkwyvbat.dwbcore.world.entity;
 
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import net.darkwyvbat.dwbcore.world.entity.ai.ItemInspector;
 import net.darkwyvbat.dwbcore.world.entity.inventory.*;
 import net.minecraft.core.component.DataComponents;
@@ -16,7 +17,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.storage.ValueInput;
@@ -25,18 +25,16 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity implements InventoryUser {
 
-    protected static final Vec3 ITEM_PICKUP_REACH = new Vec3(1.2, 0.7, 1.2);
-
     protected final HumanoidInventoryManager inventoryManager;
     public boolean shouldRevisionItems = true;
-    protected List<ItemEntity> wantedItems = new ArrayList<>();
+    protected ItemEntity wantedItem;
+    public final IntOpenHashSet pickupBlacklist = new IntOpenHashSet();
 
     protected AbstractInventoryHumanoid(EntityType<? extends AbstractInventoryHumanoid> entityType, Level level) {
         super(entityType, level);
@@ -60,11 +58,7 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
     protected void customServerAiStep(ServerLevel serverLevel) {
         super.customServerAiStep(serverLevel);
         if (tickCount % 64 == 0)
-            wantedItems = inspectItemEntities(perception.getLastScan().itemsAround());
-
-        for (ItemEntity item : this.level().getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(ITEM_PICKUP_REACH.x, ITEM_PICKUP_REACH.y, ITEM_PICKUP_REACH.z)))
-            if (!item.isRemoved() && !item.getItem().isEmpty() && !item.hasPickUpDelay() && this.wantsToPickUp(serverLevel, item.getItem()))
-                this.pickUpItem(serverLevel, item);
+            scanForItems();
 
         useItemCD.tick();
     }
@@ -86,13 +80,23 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
 
     @Override
     public @NotNull SimpleContainer getInventory() {
-        return this.inventoryManager.getInventory();
+        return inventoryManager.getInventory();
     }
 
     @Override
     public void containerChanged(Container container) {
         inventoryManager.updateInventoryEntries();
         shouldRevisionItems = true;
+        wantedItem = null;
+        pickupBlacklist.clear();
+    }
+
+    public void ignoreItem(ItemEntity itemEntity) {
+        pickupBlacklist.add(itemEntity.getId());
+    }
+
+    public boolean isItemIgnored(ItemEntity itemEntity) {
+        return pickupBlacklist.contains(itemEntity.getId());
     }
 
     @Override
@@ -102,31 +106,61 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
     }
 
     @Override
-    protected void pickUpItem(ServerLevel serverLevel, ItemEntity itemEntity) {
+    public void pickUpItem(ServerLevel serverLevel, ItemEntity itemEntity) {
         onItemPickup(itemEntity);
         InventoryCarrier.pickUpItem(serverLevel, this, this, itemEntity);
         inventoryManager.updateInventoryEntries();
     }
 
-    @Override
-    public boolean wantsToPickUp(ServerLevel serverLevel, ItemStack itemStack) {
-        return serverLevel.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING) && this.isAlive();
+    private void scanForItems() {
+        if (wantedItem != null && wantedItem.isAlive() && !wantedItem.hasPickUpDelay()) return;
+        wantedItem = null;
+
+        List<ItemEntity> itemsAround = getItemsAround(8);
+        if (itemsAround.isEmpty()) return;
+        ItemEntity closestItem = null;
+        double minDistSqr = Double.MAX_VALUE;
+        for (ItemEntity itemEntity : itemsAround) {
+            if (pickupBlacklist.contains(itemEntity.getId()) || !itemEntity.isAlive() || itemEntity.hasPickUpDelay())
+                continue;
+            if (wantsToPickUp((ServerLevel) level(), itemEntity.getItem())) {
+                double distSqr = distanceToSqr(itemEntity);
+                if (distSqr < minDistSqr) {
+                    minDistSqr = distSqr;
+                    closestItem = itemEntity;
+                }
+            } else
+                pickupBlacklist.add(itemEntity.getId());
+        }
+        wantedItem = closestItem;
     }
 
-    public List<ItemEntity> inspectItemEntities(List<ItemEntity> entities) {
-        Set<ItemEntity> wanted = new HashSet<>();
-        for (ItemEntity itemEntity : entities) {
-            ItemStack worldItem = itemEntity.getItem();
-            if (worldItem.isEmpty()) continue;
-            for (ItemCategory category : inventoryManager.getCategorizer().categorize(worldItem)) {
-                ItemInspector inspector = getInventoryProfile().itemInspectors().get(category);
-                if (inspector != null && inspector.isWanted(this, worldItem, category, inventoryManager)) {
-                    wanted.add(itemEntity);
-                    break;
-                }
-            }
+    @Override
+    public boolean wantsToPickUp(ServerLevel serverLevel, ItemStack itemStack) {
+        if (itemStack.isEmpty()) return false;
+
+        Set<ItemCategory> categories = inventoryManager.getCategorizer().categorize(itemStack);
+        if (categories.isEmpty()) return false;
+        ItemCategory newCategory = null;
+        for (ItemCategory cat : categories)
+            if (newCategory == null || inventoryManager.isCategoryMoreImportant(cat, newCategory))
+                newCategory = cat;
+        if (inventoryManager.entryNotEmpty(newCategory)) {
+            ItemInspector inspector = getInventoryProfile().itemInspectors().get(newCategory);
+            if (inspector != null)
+                if (!inspector.isWanted(this, itemStack, newCategory, inventoryManager))
+                    return false;
         }
-        return new ArrayList<>(wanted);
+        if (getInventory().canAddItem(itemStack)) return true;
+        ItemCategory lowestInInv = inventoryManager.getLowestPresentCategory();
+        if (lowestInInv == null) return true;
+        if (inventoryManager.isCategoryMoreImportant(newCategory, lowestInInv))
+            return true;
+        return newCategory == lowestInInv;
+    }
+
+    protected List<ItemEntity> getItemsAround(double r) {
+        return level().getEntitiesOfClass(ItemEntity.class, getBoundingBox().inflate(r));
     }
 
     @Override
@@ -218,7 +252,11 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
         });
     }
 
-    public List<ItemEntity> getWantedItems() {
-        return wantedItems;
+    public ItemEntity getWantedItem() {
+        return wantedItem;
+    }
+
+    public void setWantedItem(ItemEntity itemEntity) {
+        wantedItem = itemEntity;
     }
 }

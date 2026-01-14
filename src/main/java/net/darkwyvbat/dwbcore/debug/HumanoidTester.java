@@ -1,5 +1,6 @@
 package net.darkwyvbat.dwbcore.debug;
 
+import net.darkwyvbat.dwbcore.util.PoorRandom;
 import net.darkwyvbat.dwbcore.util.time.Timeline;
 import net.darkwyvbat.dwbcore.world.entity.AbstractHumanoidEntity;
 import net.darkwyvbat.dwbcore.world.entity.CombatantInventoryHumanoid;
@@ -36,7 +37,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-// TODO + profile
 public class HumanoidTester extends CombatantInventoryHumanoid implements GrowableMob<HumanoidTester> {
 
     private static final EntityDataAccessor<Boolean> DATA_BABY_ID = SynchedEntityData.defineId(HumanoidTester.class, EntityDataSerializers.BOOLEAN);
@@ -55,7 +55,7 @@ public class HumanoidTester extends CombatantInventoryHumanoid implements Growab
             .inspector(DwbItemCategories.RANGED_WEAPON, ItemInspectors.FILL_EMPTY_SLOT)
             .inspector(DwbItemCategories.SHIELD_OR_SUPPORT, ItemInspectors.FILL_EMPTY_SLOT)
             .inspector(DwbItemCategories.ARMOR, ItemInspectors.ARMOR_UPGRADE)
-            .item(Items.IRON_AXE)
+            .item(PoorRandom.quickProb(0.4F) ? Items.IRON_AXE : Items.AIR)
             .build();
 
     public HumanoidTester(EntityType<? extends HumanoidTester> entityType, Level level) {
@@ -135,8 +135,6 @@ public class HumanoidTester extends CombatantInventoryHumanoid implements Growab
         this.goalSelector.addGoal(6, new LookAtEntityGoal(this, 6.0F));
         this.goalSelector.addGoal(6, new RandomLookAroundGoal(this));
         this.goalSelector.addGoal(6, new ConsumeGoal(this));
-        this.goalSelector.addGoal(8, new HumanoidGoalsCollection.RandomFreeHandsGoal(this));
-        this.goalSelector.addGoal(9, new HumanoidGoalsCollection.RandomDisarm(this, 100));
         this.goalSelector.addGoal(10, new HumanoidGoalsCollection.OptimizeInventory(this));
 
         this.targetSelector.addGoal(1, new RevengeTargetGoal(this, e -> !(e instanceof HumanoidTester)));
@@ -145,7 +143,7 @@ public class HumanoidTester extends CombatantInventoryHumanoid implements Growab
 
     @Override
     public PerceptionCenter createPerception() {
-        return new PerceptionCenter(this, new PerceptionProfile(5, 10), DwbOpinions._HUMAN_TESTER_OPINIONS);
+        return new PerceptionCenter(this, new PerceptionProfile(), DwbOpinions._HUMAN_TESTER_OPINIONS);
     }
 
     @Override

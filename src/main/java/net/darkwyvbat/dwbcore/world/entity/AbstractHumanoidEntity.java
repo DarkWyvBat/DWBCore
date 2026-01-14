@@ -88,6 +88,17 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
         updateSwingTime();
     }
 
+    @Override
+    protected void customServerAiStep(ServerLevel serverLevel) {
+        super.customServerAiStep(serverLevel);
+        if (!getNavigation().isDone()) {
+            if (isSitting() || isSleeping()) {
+                if (isSleeping()) stopSleeping();
+                standUp();
+            }
+        }
+    }
+
     public boolean canSelfMove() {
         return !isSleeping() && !isSitting() && isAlive();
     }
@@ -104,7 +115,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
         if (isPassenger()) stopRiding();
         if (isSleeping()) stopSleeping();
         setMobState(MobState.SITTING);
-        setPos(blockPos.getX(), blockPos.getY() + 0.1, blockPos.getZ());
+        if (blockPos != null) setPos(blockPos.getX(), blockPos.getY() + 0.1, blockPos.getZ());
         setDeltaMovement(Vec3.ZERO);
         hasImpulse = true;
     }

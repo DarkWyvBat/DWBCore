@@ -1,7 +1,6 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.goal;
 
 import net.darkwyvbat.dwbcore.world.entity.AbstractHumanoidEntity;
-import net.darkwyvbat.dwbcore.world.entity.ai.perception.ActivityState;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
 import net.minecraft.world.phys.Vec3;
@@ -38,7 +37,7 @@ public class RandomWalkGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        if (mob.getPerception().getProfile().getState().isGreater(ActivityState.REGULAR) || !mob.canSelfMove())
+        if (!mob.canSelfMove())
             return false;
         else {
             if (!this.forceTrigger) {
@@ -71,7 +70,7 @@ public class RandomWalkGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return !this.mob.getNavigation().isDone() && mob.getPerception().getProfile().getState().isNotGreater(ActivityState.REGULAR);
+        return !this.mob.getNavigation().isDone();
     }
 
     @Override

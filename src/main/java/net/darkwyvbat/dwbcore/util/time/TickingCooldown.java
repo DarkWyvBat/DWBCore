@@ -39,15 +39,15 @@ public class TickingCooldown {
     }
 
     public void set(long v) {
-        set(v, isReady());
-    }
-
-    public void set(long v, boolean force) {
-        if (force) ticks = v;
+        ticks = v;
     }
 
     public void reset() {
         ticks = defaultValue;
+    }
+
+    public void add(long v) {
+        set(getTicks() + v);
     }
 
     public long getTicks() {

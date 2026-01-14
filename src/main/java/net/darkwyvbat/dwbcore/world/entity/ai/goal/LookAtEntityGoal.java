@@ -38,7 +38,7 @@ public class LookAtEntityGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        sensor = mob.getPerception().getLastScan();
+        sensor = mob.getPerception().scanWorld();
         if (PoorRandom.quickFloat() >= probability)
             return false;
         else {

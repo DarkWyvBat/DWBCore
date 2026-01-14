@@ -21,8 +21,8 @@ public abstract class PerceptionBasedMob extends PathfinderMob {
     @Override
     protected void addAdditionalSaveData(ValueOutput valueOutput) {
         super.addAdditionalSaveData(valueOutput);
-        if (this.perception != null)
-            this.perception.write(valueOutput);
+        if (perception != null)
+            perception.write(valueOutput);
     }
 
     @Override
@@ -40,7 +40,7 @@ public abstract class PerceptionBasedMob extends PathfinderMob {
     public abstract PerceptionCenter createPerception();
 
     public PerceptionCenter getPerception() {
-        return this.perception;
+        return perception;
     }
 
     public OpinionResolver getOpinions() {

@@ -24,7 +24,7 @@ public class MeleeStrategy extends CombatStrategy {
     public void start(CombatState state, CombatStrategy prevStrategy) {
         state.getAttacker().getNavigation().stop();
         meleeAttacker.prepareMelee();
-        shieldStateCD.set(10, true);
+        shieldStateCD.set(10);
     }
 
     @Override

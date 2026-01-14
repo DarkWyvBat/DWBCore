@@ -41,10 +41,21 @@ public class InventoryManager {
             if (needFromThisCategory <= 0) break;
             int currentCategorySize = itemsInCategory.size();
             int slotsToFree = Math.min(needFromThisCategory, currentCategorySize);
-            CategoryCollector strategy = categoryCollectStrategies != null && !categoryCollectStrategies.isEmpty() ? categoryCollectStrategies.get(category) : InventoryCleanStrategies.FROM_LAST;
+            CategoryCollector strategy = categoryCollectStrategies != null ? categoryCollectStrategies.getOrDefault(category, InventoryCleanStrategies.FROM_LAST) : InventoryCleanStrategies.FROM_LAST;
             strategy.collect(itemsInCategory, slotsToFree, trash, inventory, category);
         }
         return trash;
+    }
+
+    public boolean isCategoryMoreImportant(ItemCategory cat1, ItemCategory cat2) {
+        return config.importanceOrder().indexOf(cat1) > config.importanceOrder().indexOf(cat2);
+    }
+
+    public ItemCategory getLowestPresentCategory() {
+        for (ItemCategory cat : config.importanceOrder())
+            if (entryNotEmpty(cat))
+                return cat;
+        return null;
     }
 
     public void updateInventoryEntries() {
