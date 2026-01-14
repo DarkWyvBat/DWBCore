@@ -17,6 +17,26 @@ public final class RangeMapper<T extends Number & Comparable<T>, V> {
         return entry != null ? entry.getValue() : defaultValue;
     }
 
+    public static <T extends Comparable<T>> boolean isBetween(T v, T min, T max) {
+        return v.compareTo(min) >= 0 && v.compareTo(max) <= 0;
+    }
+
+    public static <T extends Comparable<T>> boolean isBelow(T v, T min) {
+        return v.compareTo(min) < 0;
+    }
+
+    public static <T extends Comparable<T>> boolean isAbove(T v, T max) {
+        return v.compareTo(max) > 0;
+    }
+
+    public boolean isUnder(T v) {
+        return !thresholds.isEmpty() && v.compareTo(thresholds.firstKey()) < 0;
+    }
+
+    public boolean isOver(T v) {
+        return !thresholds.isEmpty() && v.compareTo(thresholds.lastKey()) >= 0;
+    }
+
     public static <T extends Number & Comparable<T>, V> Builder<T, V> builder() {
         return new Builder<>();
     }
