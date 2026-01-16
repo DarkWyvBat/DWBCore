@@ -47,12 +47,12 @@ public class CombatState implements CombatStateView {
     }
 
     @Override
-    public LivingEntity getTarget() {
+    public LivingEntity target() {
         return target;
     }
 
     @Override
-    public double getDistanceSqr() {
+    public double distanceSqr() {
         return distanceSqr;
     }
 
@@ -67,12 +67,12 @@ public class CombatState implements CombatStateView {
     }
 
     @Override
-    public Mob getAttacker() {
+    public Mob attacker() {
         return attacker;
     }
 
     @Override
-    public CombatConfig getConfig() {
+    public CombatConfig config() {
         return config;
     }
 

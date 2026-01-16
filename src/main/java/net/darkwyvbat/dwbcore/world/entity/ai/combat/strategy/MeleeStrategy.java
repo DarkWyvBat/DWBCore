@@ -22,25 +22,25 @@ public class MeleeStrategy extends CombatStrategy {
 
     @Override
     public void start(CombatState state, CombatStrategy prevStrategy) {
-        state.getAttacker().getNavigation().stop();
+        state.attacker().getNavigation().stop();
         meleeAttacker.prepareMelee();
         shieldStateCD.set(10);
     }
 
     @Override
     public void stop(CombatState state, CombatStrategy nextStrategy) {
-        state.getAttacker().stopUsingItem();
+        state.attacker().stopUsingItem();
     }
 
     @Override
     public void tick(CombatState state) {
-        if (state.getAttacker() instanceof AttackBlocker attackBlocker) {
+        if (state.attacker() instanceof AttackBlocker attackBlocker) {
             if (shieldStateCD.tick()) {
                 if (attackBlocker.readyForBlockAttack()) {
-                    if (!state.getAttacker().isUsingItem() && (state.getAttacker().hurtTime != 0 || PoorRandom.quickProb(0.02F))) {
+                    if (!state.attacker().isUsingItem() && (state.attacker().hurtTime != 0 || PoorRandom.quickProb(0.02F))) {
                         attackBlocker.startBlockAttack();
                         shieldStateCD.set(20);
-                    } else if (PoorRandom.quickProb(0.01F) && state.getAttacker().hurtTime == 0) {
+                    } else if (PoorRandom.quickProb(0.01F) && state.attacker().hurtTime == 0) {
                         attackBlocker.stopBlockAttack();
                         shieldStateCD.set(10);
                     }
@@ -50,23 +50,23 @@ public class MeleeStrategy extends CombatStrategy {
         }
 
         if (state.isPathCooldownReady()) {
-            if (!state.getAttacker().isWithinMeleeAttackRange(state.getTarget()) || !state.canSeeTarget())
-                MovementHelper.tryPathToEntity(state.getAttacker(), state.getTarget(), state.getConfig().meleeConfig().speed());
+            if (!state.attacker().isWithinMeleeAttackRange(state.target()) || !state.canSeeTarget())
+                MovementHelper.tryPathToEntity(state.attacker(), state.target(), state.config().meleeConfig().speed());
             else
-                state.getAttacker().getNavigation().stop();
-            state.startPathCooldown(pathToTargetCD(state.getDistanceSqr()));
+                state.attacker().getNavigation().stop();
+            state.startPathCooldown(pathToTargetCD(state.distanceSqr()));
         }
-        if (state.isMeleeCooldownReady() && state.getAttacker().isWithinMeleeAttackRange(state.getTarget()) && state.canSeeTarget()) {
-            state.getAttacker().swing(InteractionHand.MAIN_HAND);
-            state.getAttacker().doHurtTarget((ServerLevel) state.getAttacker().level(), state.getTarget());
-            state.startMeleeCooldown(state.getConfig().meleeConfig().attackCD());
+        if (state.isMeleeCooldownReady() && state.attacker().isWithinMeleeAttackRange(state.target()) && state.canSeeTarget()) {
+            state.attacker().swing(InteractionHand.MAIN_HAND);
+            state.attacker().doHurtTarget((ServerLevel) state.attacker().level(), state.target());
+            state.startMeleeCooldown(state.config().meleeConfig().attackCD());
         }
     }
 
     @Override
     public boolean canStart(CombatStateView state, CombatStrategy currentStrategy) {
-        if (state.getAttacker() instanceof RangedAttacker rangedAttacker)
-            return !rangedAttacker.hasRanged() || state.getDistanceSqr() > state.getConfig().rangedConfig().startDistSqr();
+        if (state.attacker() instanceof RangedAttacker rangedAttacker)
+            return !rangedAttacker.hasRanged() || state.distanceSqr() > state.config().rangedConfig().startDistSqr();
 
         return true;
     }

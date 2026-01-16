@@ -10,15 +10,15 @@ public class MathUtils {
         return poorSin(x + 90);
     }
 
-    public static boolean equalWithin(double a, double b, double e) {
+    public static boolean eqWithin(double a, double b, double e) {
         return Math.abs(a - b) < e;
     }
 
-    public static boolean isBetween(double v, double l, double h) {
+    public static boolean isBtwn(double v, double l, double h) {
         return v > l && v < h;
     }
 
-    public static boolean isBetweenIncl(double v, double l, double h) {
+    public static boolean isBtwnIncl(double v, double l, double h) {
         return v >= l && v <= h;
     }
 }

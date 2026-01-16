@@ -18,7 +18,7 @@ public class RangedStrategy extends CombatStrategy {
     @Override
     public void start(CombatState state, CombatStrategy prevStrategy) {
         if (!(prevStrategy instanceof KitingStrategy)) {
-            state.getAttacker().stopUsingItem();
+            state.attacker().stopUsingItem();
             state.startRangedCooldown(5);
         }
         if (!rangedAttacker.readyForRanged()) rangedAttacker.prepareRanged();
@@ -27,10 +27,10 @@ public class RangedStrategy extends CombatStrategy {
     @Override
     public void tick(CombatState state) {
         if (state.isPathCooldownReady()) {
-            if ((!state.canSeeTarget() && state.getSeeTime() < 0) || (state.canSeeTarget() && state.getDistanceSqr() > state.getConfig().rangedConfig().prefRangeSqr()))
-                MovementHelper.tryPathToEntity(state.getAttacker(), state.getTarget());
+            if ((!state.canSeeTarget() && state.getSeeTime() < 0) || (state.canSeeTarget() && state.distanceSqr() > state.config().rangedConfig().prefRangeSqr()))
+                MovementHelper.tryPathToEntity(state.attacker(), state.target());
             else if (state.canSeeTarget())
-                state.getAttacker().getNavigation().stop();
+                state.attacker().getNavigation().stop();
             state.startPathCooldown(10);
         }
         WeaponCombatUsage.tryRanged(state, InteractionHand.MAIN_HAND);
@@ -38,12 +38,12 @@ public class RangedStrategy extends CombatStrategy {
 
     @Override
     public void stop(CombatState state, CombatStrategy nextStrategy) {
-        if (!(nextStrategy instanceof RangedStrategy)) state.getAttacker().stopUsingItem();
+        if (!(nextStrategy instanceof RangedStrategy)) state.attacker().stopUsingItem();
     }
 
     @Override
     public boolean canStart(CombatStateView state, CombatStrategy currentStrategy) {
         if (!rangedAttacker.hasRanged()) return false;
-        return state.getDistanceSqr() > state.getConfig().rangedConfig().startDistSqr();
+        return state.distanceSqr() > state.config().rangedConfig().startDistSqr();
     }
 }

@@ -28,17 +28,17 @@ public class KitingStrategy extends CombatStrategy {
 
     @Override
     public void stop(CombatState state, CombatStrategy nextStrategy) {
-        if (!(nextStrategy instanceof RangedStrategy)) state.getAttacker().stopUsingItem();
+        if (!(nextStrategy instanceof RangedStrategy)) state.attacker().stopUsingItem();
     }
 
     @Override
     public void tick(CombatState state) {
-        Mob mob = state.getAttacker();
+        Mob mob = state.attacker();
         WeaponCombatUsage.tryRanged(state, InteractionHand.MAIN_HAND);
         if (state.isPathCooldownReady() && state.canSeeTarget()) {
-            Vec3 dir = MovementHelper.calcRetreat(mob, state.getTarget());
+            Vec3 dir = MovementHelper.calcRetreat(mob, state.target());
             if (MovementHelper.isSafeRetreat(mob, dir, 1.1)) {
-                MovementHelper.doRetreat(mob, dir, 0.2); //TODO MoveControl
+                MovementHelper.doRetreat(mob, dir, 0.15); //TODO MoveControl
             } else {
                 if (state.isPathCooldownReady()) {
                     MovementHelper.tryPathAwayEntity((PathfinderMob) mob, mob.getTarget());
@@ -50,6 +50,6 @@ public class KitingStrategy extends CombatStrategy {
 
     @Override
     public boolean canStart(CombatStateView state, CombatStrategy currentStrategy) {
-        return rangedAttacker.hasRanged() && state.canSeeTarget() && MathUtils.isBetween(state.getDistanceSqr(), state.getConfig().rangedConfig().startDistSqr(), state.getConfig().rangedConfig().startKitingDistSqr());
+        return rangedAttacker.hasRanged() && state.canSeeTarget() && MathUtils.isBtwn(state.distanceSqr(), state.config().rangedConfig().startDistSqr(), state.config().rangedConfig().startKitingDistSqr());
     }
 }

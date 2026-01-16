@@ -5,7 +5,6 @@ import net.darkwyvbat.dwbcore.util.time.TickingCooldown;
 import java.util.ArrayList;
 import java.util.List;
 
-//TODO
 public class CombatStrategyManager {
     public static final int DEFAULT_CHANGE_INTERVAL = 10;
 
@@ -15,7 +14,6 @@ public class CombatStrategyManager {
 
     private CombatStrategy prevStrategy;
     private CombatStrategy currentStrategy;
-
     private CombatState state;
 
     private CombatStrategyManager(List<CombatStrategy> strategies, CombatStrategy defaultStrategy, int changeInterval) {

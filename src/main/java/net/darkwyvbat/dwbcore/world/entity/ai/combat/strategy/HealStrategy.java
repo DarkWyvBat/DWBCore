@@ -26,11 +26,11 @@ public class HealStrategy extends CombatStrategy {
     @Override
     public void tick(CombatState state) {
         healCd.tick();
-        if (state.getDistanceSqr() < 49.0) {
-            state.getAttacker().getNavigation().stop();
-            Vec3 dir = MovementHelper.calcRetreat(state.getAttacker(), state.getTarget());
-            if (MovementHelper.isSafeRetreat(state.getAttacker(), dir, 1.4)) {
-                MovementHelper.doRetreat(state.getAttacker(), dir);
+        if (state.distanceSqr() < 49.0) {
+            state.attacker().getNavigation().stop();
+            Vec3 dir = MovementHelper.calcRetreat(state.attacker(), state.target());
+            if (MovementHelper.isSafeRetreat(state.attacker(), dir, 1.1)) {
+                MovementHelper.doRetreat(state.attacker(), dir, 0.15);
             } else
                 tryStartCaring();
         } else

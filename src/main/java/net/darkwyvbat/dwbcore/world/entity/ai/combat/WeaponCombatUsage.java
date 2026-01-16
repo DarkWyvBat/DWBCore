@@ -29,53 +29,53 @@ public final class WeaponCombatUsage {
 
     private static void registerVanillaWeaponHandlers() {
         WEAPON_HANDLERS.put(Items.BOW, (state, item, hand) -> {
-            Mob mob = state.getAttacker();
+            Mob mob = state.attacker();
             if (mob.isUsingItem()) {
                 int ticks = mob.getTicksUsingItem();
-                if ((!state.canSeeTarget() && state.getSeeTime() < state.getConfig().seeTimeStop()) || state.getDistanceSqr() > state.getConfig().rangedConfig().lostRangeSqr()) {
+                if ((!state.canSeeTarget() && state.getSeeTime() < state.config().seeTimeStop()) || state.distanceSqr() > state.config().rangedConfig().lostRangeSqr()) {
                     mob.stopUsingItem();
                     return;
                 }
                 if (state.canSeeTarget() && EntityUtils.isFirelineClear(mob, 16, e -> e.getType() == mob.getType()) && ticks > BowItem.MAX_DRAW_DURATION) {
                     mob.releaseUsingItem();
-                    ((RangedAttacker) mob).performRangedAttack(state.getTarget(), mob.getUsedItemHand(), BowItem.getPowerForTime(ticks));
-                    state.startRangedCooldown(state.getConfig().rangedConfig().cd());
+                    ((RangedAttacker) mob).performRangedAttack(state.target(), mob.getUsedItemHand(), BowItem.getPowerForTime(ticks));
+                    state.startRangedCooldown(state.config().rangedConfig().cd());
                 }
             } else if (state.isRangedCooldownReady() && state.canSeeTarget() && state.getSeeTime() >= 0)
-                if (MathUtils.isBetween(state.getDistanceSqr(), state.getConfig().rangedConfig().startDistSqr(), state.getConfig().rangedConfig().maxRangeSqr()))
+                if (MathUtils.isBtwn(state.distanceSqr(), state.config().rangedConfig().startDistSqr(), state.config().rangedConfig().maxRangeSqr()))
                     mob.startUsingItem(hand);
         });
 
         WEAPON_HANDLERS.put(Items.CROSSBOW, (state, item, hand) -> {
             if (CrossbowItem.isCharged(item) && state.isRangedCooldownReady() && state.canSeeTarget()) {
-                if (EntityUtils.isFirelineClear(state.getAttacker(), 16, e -> e.getType() == state.getAttacker().getType())) {
-                    ((CrossbowItem) item.getItem()).performShooting(state.getAttacker().level(), state.getAttacker(), hand, item, 1.6f, PROJECTILE_ACCURACY, state.getAttacker().getTarget());
-                    state.startRangedCooldown(state.getConfig().rangedConfig().cd());
-                    state.getAttacker().stopUsingItem();
+                if (EntityUtils.isFirelineClear(state.attacker(), 16, e -> e.getType() == state.attacker().getType())) {
+                    ((CrossbowItem) item.getItem()).performShooting(state.attacker().level(), state.attacker(), hand, item, 1.6f, PROJECTILE_ACCURACY, state.attacker().getTarget());
+                    state.startRangedCooldown(state.config().rangedConfig().cd());
+                    state.attacker().stopUsingItem();
                 }
                 return;
             }
-            if (!state.getAttacker().isUsingItem() && state.isRangedCooldownReady() && !CrossbowItem.isCharged(item)) {
-                state.getAttacker().startUsingItem(hand);
+            if (!state.attacker().isUsingItem() && state.isRangedCooldownReady() && !CrossbowItem.isCharged(item)) {
+                state.attacker().startUsingItem(hand);
                 return;
             }
-            if (state.getAttacker().getTicksUsingItem() >= CrossbowItem.getChargeDuration(item, state.getAttacker())) {
+            if (state.attacker().getTicksUsingItem() >= CrossbowItem.getChargeDuration(item, state.attacker())) {
                 item.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.of(new ItemStack(Items.ARROW)));
-                state.getAttacker().releaseUsingItem();
-                state.startRangedCooldown(state.getConfig().rangedConfig().cd());
+                state.attacker().releaseUsingItem();
+                state.startRangedCooldown(state.config().rangedConfig().cd());
             }
         });
 
         WEAPON_HANDLERS.put(Items.TRIDENT, (state, item, hand) -> {
-            AbstractHumanoidEntity mob = (AbstractHumanoidEntity) state.getAttacker();
+            AbstractHumanoidEntity mob = (AbstractHumanoidEntity) state.attacker();
             if (mob.isUsingItem()) {
                 if (!state.canSeeTarget()) {
                     mob.stopUsingItem();
                     return;
                 }
                 if (mob.getTicksUsingItem() > TridentItem.THROW_THRESHOLD_TIME && state.canSeeTarget() && EntityUtils.isFirelineClear(mob, 16, e -> e.getType() == mob.getType())) {
-                    ((RangedAttacker) mob).performRangedAttack(state.getTarget(), mob.getUsedItemHand(), 1.0F);
-                    state.startRangedCooldown(state.getConfig().rangedConfig().cd() * 2);
+                    ((RangedAttacker) mob).performRangedAttack(state.target(), mob.getUsedItemHand(), 1.0F);
+                    state.startRangedCooldown(state.config().rangedConfig().cd() * 2);
                     mob.stopUsingItem();
                 }
             } else if (state.isRangedCooldownReady() && state.canSeeTarget())
@@ -96,9 +96,9 @@ public final class WeaponCombatUsage {
     }
 
     private static void throwProjectile(CombatState state, ItemStack itemStack, InteractionHand hand, int cd) {
-        if (state.isRangedCooldownReady() && state.canSeeTarget() && EntityUtils.isFirelineClear(state.getAttacker(), 16, e -> e.getType() == state.getAttacker().getType())) {
-            ((RangedAttacker) state.getAttacker()).performRangedAttack(state.getTarget(), hand, 1.0F);
-            state.getAttacker().swing(hand);
+        if (state.isRangedCooldownReady() && state.canSeeTarget() && EntityUtils.isFirelineClear(state.attacker(), 16, e -> e.getType() == state.attacker().getType())) {
+            ((RangedAttacker) state.attacker()).performRangedAttack(state.target(), hand, 1.0F);
+            state.attacker().swing(hand);
             state.startRangedCooldown(cd);
         }
     }
@@ -112,7 +112,7 @@ public final class WeaponCombatUsage {
     }
 
     public static void tryRanged(CombatState state, InteractionHand hand) {
-        ItemStack weapon = state.getAttacker().getItemInHand(hand);
+        ItemStack weapon = state.attacker().getItemInHand(hand);
         WeaponHandler handler = WeaponCombatUsage.WEAPON_HANDLERS.get(weapon.getItem());
         if (handler != null)
             handler.handle(state, weapon, hand);

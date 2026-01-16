@@ -13,7 +13,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EquipmentSlot;
 
-//TODO rethink
 public class PotionAttackStrategy extends CombatStrategy {
     private final PotionAttacker potionAttacker;
     private Holder<MobEffect> effect;
@@ -25,6 +24,7 @@ public class PotionAttackStrategy extends CombatStrategy {
 
     @Override
     public void start(CombatState state, CombatStrategy prevStrategy) {
+        state.attacker().stopUsingItem();
         potionAttacker.preparePotionAttack(effect, EquipmentSlot.OFFHAND);
         WeaponCombatUsage.tryRanged(state, InteractionHand.OFF_HAND);
         cd.set(40, state.timeNow());
@@ -32,8 +32,8 @@ public class PotionAttackStrategy extends CombatStrategy {
 
     @Override
     public boolean canStart(CombatStateView state, CombatStrategy currentStrategy) {
-        if (cd.isReady(state.timeNow()) && !state.getAttacker().isUsingItem() && potionAttacker.hasAttackPotions() && MathUtils.isBetween(state.getDistanceSqr(), 25.0, 144.0)) {
-            effect = AIUtils.getSuitableAttackPotion(state.getAttacker(), state.getTarget(), potionAttacker.getAvailableAttackEffects());
+        if (cd.isReady(state.timeNow()) && potionAttacker.hasAttackPotions() && MathUtils.isBtwn(state.distanceSqr(), 25.0, 144.0)) {
+            effect = AIUtils.getSuitableAttackPotion(state.attacker(), state.target(), potionAttacker.getAvailableAttackEffects());
             return effect != null;
         }
         return false;

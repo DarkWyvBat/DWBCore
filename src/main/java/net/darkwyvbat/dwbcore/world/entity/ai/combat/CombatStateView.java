@@ -4,17 +4,17 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 
 public interface CombatStateView {
-    LivingEntity getTarget();
+    LivingEntity target();
 
-    double getDistanceSqr();
+    double distanceSqr();
 
     boolean canSeeTarget();
 
     int getSeeTime();
 
-    Mob getAttacker();
+    Mob attacker();
 
-    CombatConfig getConfig();
+    CombatConfig config();
 
     long timeNow();
 

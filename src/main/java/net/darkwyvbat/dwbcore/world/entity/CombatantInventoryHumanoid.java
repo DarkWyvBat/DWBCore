@@ -117,7 +117,8 @@ public abstract class CombatantInventoryHumanoid extends AbstractInventoryHumano
 
     @Override
     public void prepareForAttackBlocking() {
-        equipFromInventory(EquipmentSlot.OFFHAND, inventoryManager.getFirstIndexInEntry(DwbItemCategories.SHIELD_OR_SUPPORT));
+        if (inventoryManager.entryNotEmpty(DwbItemCategories.SHIELD_OR_SUPPORT))
+            equipFromInventory(EquipmentSlot.OFFHAND, inventoryManager.getFirstIndexInEntry(DwbItemCategories.SHIELD_OR_SUPPORT));
     }
 
     @Override
