@@ -60,7 +60,7 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
         if (tickCount % 64 == 0)
             scanForItems();
 
-        useItemCD.tick();
+        useItemCd.tick();
     }
 
     @Override

@@ -112,7 +112,7 @@ public abstract class CombatantInventoryHumanoid extends AbstractInventoryHumano
 
     @Override
     public boolean readyForBlockAttack() {
-        return useItemCD.isReady() && getItemInHand(InteractionHand.OFF_HAND).has(DataComponents.BLOCKS_ATTACKS);
+        return useItemCd.isReady() && getItemInHand(InteractionHand.OFF_HAND).has(DataComponents.BLOCKS_ATTACKS);
     }
 
     @Override

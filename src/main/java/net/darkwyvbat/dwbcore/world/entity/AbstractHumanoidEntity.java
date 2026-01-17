@@ -52,7 +52,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     public static final ResourceLocation SHIELD_ATTRIBUTE_ID = INFO.idOf("shield");
     public static final AttributeModifier SHIELD_KNOCKBACK_RESISTANCE = new AttributeModifier(SHIELD_ATTRIBUTE_ID, 0.8, AttributeModifier.Operation.ADD_VALUE);
 
-    protected TickingCooldown useItemCD = new TickingCooldown(0);
+    protected TickingCooldown useItemCd = new TickingCooldown(0);
 
     protected AbstractHumanoidEntity(EntityType<? extends AbstractHumanoidEntity> entityType, Level level) {
         super(entityType, level);
@@ -208,8 +208,8 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
         return isSwimming() || super.isVisuallySwimming();
     }
 
-    public TickingCooldown getUseItemCD() {
-        return useItemCD;
+    public TickingCooldown getUseItemCd() {
+        return useItemCd;
     }
 
     @Override
@@ -283,7 +283,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
         BlocksAttacks blocksAttacks = itemStack != null ? itemStack.get(DataComponents.BLOCKS_ATTACKS) : null;
         float f = livingEntity.getSecondsToDisableBlocking();
         if (f > 0.0F && blocksAttacks != null) {
-            useItemCD.set((int) (f * 20));
+            useItemCd.set((int) (f * 20));
             blocksAttacks.disable(serverLevel, this, f, itemStack);
         }
     }
