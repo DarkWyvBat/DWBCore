@@ -9,7 +9,7 @@ import static net.darkwyvbat.dwbcore.DwbCore.INFO;
 
 public final class DwbBlockEntityType {
 
-    public static final BlockEntityType<ProxyBlockEntity> PROXY_BLOCK = RegistrationHelper.registerBlockEntity(INFO.idOf("proxy_block"), FabricBlockEntityTypeBuilder.create(ProxyBlockEntity::new, DwbBlocks.PROXY_BLOCK));
+    public static final BlockEntityType<ProxyBlockEntity> PROXY_BLOCK = RegistrationHelper.registerBlockEntity(INFO.id("proxy_block"), FabricBlockEntityTypeBuilder.create(ProxyBlockEntity::new, DwbBlocks.PROXY_BLOCK));
 
     public static void init() {
     }

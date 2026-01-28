@@ -24,7 +24,6 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +39,7 @@ public class ProxyBlock extends BaseEntityBlock {
     public static final Map<String, ProxyBlockPool> POOLS = new HashMap<>();
 
     @Override
-    public @NotNull MapCodec<ProxyBlock> codec() {
+    public MapCodec<ProxyBlock> codec() {
         return CODEC;
     }
 
@@ -78,12 +77,12 @@ public class ProxyBlock extends BaseEntityBlock {
     }
 
     @Override
-    public @NotNull BlockState rotate(BlockState blockState, Rotation rotation) {
+    public BlockState rotate(BlockState blockState, Rotation rotation) {
         return blockState.setValue(FACING_PROPERTY, rotation.rotate(blockState.getValue(FACING_PROPERTY)));
     }
 
     @Override
-    public @NotNull BlockState mirror(BlockState blockState, Mirror mirror) {
+    public BlockState mirror(BlockState blockState, Mirror mirror) {
         return blockState.rotate(mirror.getRotation(blockState.getValue(FACING_PROPERTY)));
     }
 
@@ -118,7 +117,7 @@ public class ProxyBlock extends BaseEntityBlock {
         }
 
         @Override
-        public @NotNull String getSerializedName() {
+        public String getSerializedName() {
             return this.name;
         }
     }

@@ -10,7 +10,7 @@ import static net.darkwyvbat.dwbcore.DwbCore.INFO;
 public final class DwbBlocks {
 
     public static final Block PROXY_BLOCK = RegistrationHelper.registerBlock(
-            INFO.idOf("proxy_block"),
+            INFO.id("proxy_block"),
             ProxyBlock::new,
             BlockBehaviour.Properties.of()
                     .strength(-1.0F, 9999)

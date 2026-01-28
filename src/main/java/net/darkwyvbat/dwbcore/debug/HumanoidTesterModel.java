@@ -2,16 +2,16 @@ package net.darkwyvbat.dwbcore.debug;
 
 import net.darkwyvbat.dwbcore.client.model.HumanoidLikeModel;
 import net.darkwyvbat.dwbcore.client.renderer.entity.HumanoidLikeRenderState;
-import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.builders.CubeDeformation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.model.player.PlayerModel;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 
 public class HumanoidTesterModel extends HumanoidLikeModel<HumanoidLikeRenderState> {
     public HumanoidTesterModel(ModelPart root) {
-        super(root, RenderType::entityTranslucent);
+        super(root, RenderTypes::entityTranslucent);
     }
 
     public static LayerDefinition createBodyLayer() {

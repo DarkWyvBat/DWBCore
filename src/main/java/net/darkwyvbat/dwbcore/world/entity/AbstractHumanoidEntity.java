@@ -7,7 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
@@ -26,7 +26,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
 
 import static net.darkwyvbat.dwbcore.DwbCore.INFO;
 
@@ -49,7 +48,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
 
     private static final EntityDataAccessor<MobState> DATA_MOB_STATE = SynchedEntityData.defineId(AbstractHumanoidEntity.class, DwbEntityDataSerializers.MOB_STATE);
 
-    public static final ResourceLocation SHIELD_ATTRIBUTE_ID = INFO.idOf("shield");
+    public static final Identifier SHIELD_ATTRIBUTE_ID = INFO.id("shield");
     public static final AttributeModifier SHIELD_KNOCKBACK_RESISTANCE = new AttributeModifier(SHIELD_ATTRIBUTE_ID, 0.8, AttributeModifier.Operation.ADD_VALUE);
 
     protected TickingCooldown useItemCd = new TickingCooldown(0);
@@ -117,7 +116,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
         setMobState(MobState.SITTING);
         if (blockPos != null) setPos(blockPos.getX(), blockPos.getY() + 0.1, blockPos.getZ());
         setDeltaMovement(Vec3.ZERO);
-        hasImpulse = true;
+        needsSync = true;
     }
 
     public void stopSitting() {
@@ -313,7 +312,7 @@ public abstract class AbstractHumanoidEntity extends PerceptionBasedMob implemen
     }
 
     @Override
-    public @NotNull EntityDimensions getDefaultDimensions(Pose pose) {
+    public EntityDimensions getDefaultDimensions(Pose pose) {
         EntityDimensions dimension = switch (pose) {
             case SITTING -> SITTING_DIMENSIONS;
             case SLEEPING -> SLEEPING_DIMENSIONS;

@@ -15,7 +15,6 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class HumanoidLikeRenderer<T extends AbstractHumanoidEntity, S extends HumanoidLikeRenderState, M extends HumanoidLikeModel<S>> extends HumanoidMobRenderer<T, S, M> {
 
@@ -24,7 +23,7 @@ public abstract class HumanoidLikeRenderer<T extends AbstractHumanoidEntity, S e
     }
 
     @Override
-    protected HumanoidModel.@NotNull ArmPose getArmPose(T entity, HumanoidArm humanoidArm) {
+    protected HumanoidModel.ArmPose getArmPose(T entity, HumanoidArm humanoidArm) {
         ItemStack mainHandItem = entity.getItemInHand(InteractionHand.MAIN_HAND);
         ItemStack offHandItem = entity.getItemInHand(InteractionHand.OFF_HAND);
         HumanoidModel.ArmPose mainHandPose = getArmPose(entity, mainHandItem, InteractionHand.MAIN_HAND);
@@ -45,7 +44,8 @@ public abstract class HumanoidLikeRenderer<T extends AbstractHumanoidEntity, S e
             return switch (itemStack.getUseAnimation()) {
                 case BLOCK -> HumanoidModel.ArmPose.BLOCK;
                 case BOW -> HumanoidModel.ArmPose.BOW_AND_ARROW;
-                case SPEAR -> HumanoidModel.ArmPose.THROW_SPEAR;
+                case TRIDENT -> HumanoidModel.ArmPose.THROW_TRIDENT;
+                case SPEAR -> HumanoidModel.ArmPose.SPEAR;
                 case CROSSBOW -> HumanoidModel.ArmPose.CROSSBOW_CHARGE;
                 case SPYGLASS -> HumanoidModel.ArmPose.SPYGLASS;
                 case TOOT_HORN -> HumanoidModel.ArmPose.TOOT_HORN;
@@ -62,8 +62,8 @@ public abstract class HumanoidLikeRenderer<T extends AbstractHumanoidEntity, S e
         super.setupRotations(state, poseStack, f, g);
         if (state.swimAmount > 0.0F) {
             float swimPitch = state.isInWater ? -90.0F - state.xRot : -90.0F;
-            float lerpedPitch = Mth.lerp(state.swimAmount, 0.0F, swimPitch);
-            poseStack.mulPose(Axis.XP.rotationDegrees(lerpedPitch));
+            float pitch = Mth.lerp(state.swimAmount, 0.0F, swimPitch);
+            poseStack.mulPose(Axis.XP.rotationDegrees(pitch));
             if (state.isVisuallySwimming) {
                 poseStack.translate(0.0F, -1.0F, 0.3F);
             }

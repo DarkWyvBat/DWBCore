@@ -5,7 +5,6 @@ import net.darkwyvbat.dwbcore.world.entity.ai.ItemInspector;
 import net.darkwyvbat.dwbcore.world.entity.inventory.*;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.Container;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.SimpleContainer;
@@ -15,6 +14,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.npc.InventoryCarrier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
@@ -22,7 +22,6 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
@@ -39,13 +38,12 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
     protected AbstractInventoryHumanoid(EntityType<? extends AbstractInventoryHumanoid> entityType, Level level) {
         super(entityType, level);
         inventoryManager = createInventoryManager();
-        inventoryManager.getInventory().addListener(this);
     }
 
     protected abstract MobInventoryProfile getInventoryProfile();
 
     protected void populateInventory() {
-        inventoryManager.addItems(getInventoryProfile().items());
+        inventoryManager.addItems(getInventoryProfile().items().stream().map(ItemStackTemplate::create).toList());
     }
 
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance difficultyInstance, EntitySpawnReason entitySpawnReason, @Nullable SpawnGroupData spawnGroupData) {
@@ -65,7 +63,13 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
 
     @Override
     public HumanoidInventoryManager createInventoryManager() {
-        return new HumanoidInventoryManager(new SimpleContainer(getInventorySize()), getInventoryProfile().inventoryConfig());
+        return new HumanoidInventoryManager(new SimpleContainer(getInventorySize()) {
+            @Override
+            public void setChanged() {
+                super.setChanged();
+                AbstractInventoryHumanoid.this.inventoryChanged();
+            }
+        }, getInventoryProfile().inventoryConfig());
     }
 
     @Override
@@ -79,12 +83,11 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
     }
 
     @Override
-    public @NotNull SimpleContainer getInventory() {
+    public SimpleContainer getInventory() {
         return inventoryManager.getInventory();
     }
 
-    @Override
-    public void containerChanged(Container container) {
+    public void inventoryChanged() {
         inventoryManager.updateInventoryEntries();
         shouldRevisionItems = true;
         wantedItem = null;
@@ -102,7 +105,7 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
     @Override
     public void onEquippedItemBroken(Item item, EquipmentSlot equipmentSlot) {
         super.onEquippedItemBroken(item, equipmentSlot);
-        containerChanged(getInventory());
+        inventoryChanged();
     }
 
     @Override
@@ -121,7 +124,7 @@ public abstract class AbstractInventoryHumanoid extends AbstractHumanoidEntity i
         ItemEntity closestItem = null;
         double minDistSqr = Double.MAX_VALUE;
         for (ItemEntity itemEntity : itemsAround) {
-            if (pickupBlacklist.contains(itemEntity.getId()) || !itemEntity.isAlive() || itemEntity.hasPickUpDelay())
+            if (isItemIgnored(itemEntity) || !itemEntity.isAlive() || itemEntity.hasPickUpDelay())
                 continue;
             if (wantsToPickUp((ServerLevel) level(), itemEntity.getItem())) {
                 double distSqr = distanceToSqr(itemEntity);

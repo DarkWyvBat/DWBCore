@@ -48,7 +48,7 @@ public class GoToWantedItemGoal extends Goal {
             return;
         }
         mob.getLookControl().setLookAt(wantedItem);
-        if (mob.getBoundingBox().intersects(wantedItem.getBoundingBox().inflate(1.2))) {
+        if (mob.getBoundingBox().intersects(wantedItem.getBoundingBox().inflate(1.3))) {
             if (mob.wantsToPickUp(getServerLevel(mob), wantedItem.getItem())) {
                 if (!mob.getInventory().canAddItem(wantedItem.getItem())) {
                     mob.cleanInventory(1);

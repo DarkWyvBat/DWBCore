@@ -1,7 +1,7 @@
 package net.darkwyvbat.dwbcore.world.gen.proxyblock;
 
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.Blocks;
@@ -17,9 +17,9 @@ import static net.darkwyvbat.dwbcore.DwbCore.INFO;
 import static net.darkwyvbat.dwbcore.DwbCore.LOGGER;
 
 public class ProxyBlockActionOps {
-    private static final Map<ResourceLocation, Consumer<?>> OPS = new HashMap<>();
+    private static final Map<Identifier, Consumer<?>> OPS = new HashMap<>();
 
-    public static final ProxyBlockActionOp<Mob> BABY = register(INFO.idOf("baby"), e -> e.setBaby(true));
+    public static final ProxyBlockActionOp<Mob> BABY = register(INFO.id("baby"), e -> e.setBaby(true));
 
     public static void init() {
     }
@@ -44,23 +44,31 @@ public class ProxyBlockActionOps {
         return new ProxyBlockPoolBuilder().block(Blocks.FURNACE, true, 1);
     }
 
+    public static ProxyBlockPoolBuilder blastFurnace() {
+        return new ProxyBlockPoolBuilder().block(Blocks.BLAST_FURNACE, true, 1);
+    }
+
+    public static ProxyBlockPoolBuilder smoker() {
+        return new ProxyBlockPoolBuilder().block(Blocks.SMOKER, true, 1);
+    }
+
     public static ProxyBlockPoolBuilder craftingTable() {
         return new ProxyBlockPoolBuilder().block(Blocks.CRAFTING_TABLE, 1);
     }
 
-    public static <T> ProxyBlockActionOp<T> register(ResourceLocation path, Consumer<T> consumer) {
-        OPS.put(path, consumer);
-        return new ProxyBlockActionOp<>(path, consumer);
+    public static <T> ProxyBlockActionOp<T> register(Identifier id, Consumer<T> consumer) {
+        OPS.put(id, consumer);
+        return new ProxyBlockActionOp<>(id, consumer);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> void run(ResourceLocation path, T context) {
-        Consumer<?> consumer = OPS.get(path);
+    public static <T> void run(Identifier id, T context) {
+        Consumer<?> consumer = OPS.get(id);
         if (consumer != null) {
             try {
                 ((Consumer<T>) consumer).accept(context);
             } catch (Exception e) {
-                LOGGER.error("ProxyBlock op failed: {}", path);
+                LOGGER.error("ProxyBlock op failed: {} {}", id, e);
             }
         }
     }
@@ -72,7 +80,7 @@ public class ProxyBlockActionOps {
         }
     }
 
-    public static ProxyBlockActionOp<BlockInWorld> createLootTable(ResourceLocation path, ResourceKey<LootTable> lootTable) {
-        return register(ResourceLocation.fromNamespaceAndPath(path.getNamespace(), "loot_table/" + path.getPath()), b -> applyLootTable(b, lootTable));
+    public static ProxyBlockActionOp<BlockInWorld> createLootTable(Identifier id, ResourceKey<LootTable> lootTable) {
+        return register(id.withPath("loot_table/" + id.getPath()), b -> applyLootTable(b, lootTable));
     }
 }

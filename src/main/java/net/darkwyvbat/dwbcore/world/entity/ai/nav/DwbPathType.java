@@ -1,7 +1,6 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.nav;
 
 import net.minecraft.world.level.pathfinder.PathType;
-import org.jetbrains.annotations.Nullable;
 
 public class DwbPathType {
     public static final DwbPathType NONE = new DwbPathType(PathType.WALKABLE);
@@ -14,7 +13,6 @@ public class DwbPathType {
     private boolean isBreach = false;
     private byte selfSate = 0;
 
-    @Nullable
     private String data = null;
 
     public DwbPathType(PathType fallback) {
@@ -51,7 +49,7 @@ public class DwbPathType {
         return this;
     }
 
-    public void setData(@Nullable String data) {
+    public void setData(String data) {
         this.data = data;
     }
 
@@ -83,7 +81,7 @@ public class DwbPathType {
         return selfSate;
     }
 
-    public @Nullable String getData() {
+    public String getData() {
         return data;
     }
 }

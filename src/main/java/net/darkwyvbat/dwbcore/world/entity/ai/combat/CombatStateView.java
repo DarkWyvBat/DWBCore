@@ -18,7 +18,7 @@ public interface CombatStateView {
 
     long timeNow();
 
-    CombatCooldowns getCooldowns();
+    CombatCooldowns cooldowns();
 
     boolean isPathCooldownReady();
 

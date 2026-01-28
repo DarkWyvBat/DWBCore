@@ -7,5 +7,5 @@ import net.minecraft.world.level.block.Block;
 import static net.darkwyvbat.dwbcore.DwbCore.INFO;
 
 public class DwbBlockTags {
-    public static final TagKey<Block> MOB_INTERACTABLE_PASSAGES = TagKey.create(Registries.BLOCK, INFO.idOf("mob_interactable_passages"));
+    public static final TagKey<Block> MOB_INTERACTABLE_PASSAGES = TagKey.create(Registries.BLOCK, INFO.id("mob_interactable_passages"));
 }

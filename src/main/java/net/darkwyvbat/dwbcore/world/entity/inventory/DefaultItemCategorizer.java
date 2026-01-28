@@ -15,15 +15,15 @@ import java.util.Set;
 public class DefaultItemCategorizer implements ItemCategorizer {
 
     @Override
-    public Set<ItemCategory> categorize(ItemStack item) {
+    public Set<ItemCategory> categorize(ItemStack itemStack) {
         Set<ItemCategory> categories = new HashSet<>();
 
-        if (item.is(ItemTags.ARMOR_ENCHANTABLE)) categories.add(DwbItemCategories.ARMOR);
-        if (item.is(DwbItemTags.MELEE_WEAPONS)) categories.add(DwbItemCategories.MELEE_WEAPON);
-        if (item.is(DwbItemTags.RANGED_WEAPONS)) categories.add(DwbItemCategories.RANGED_WEAPON);
-        if (item.is(Items.SHIELD)) categories.add(DwbItemCategories.SHIELD_OR_SUPPORT);
-        if (item.has(DataComponents.POTION_CONTENTS)) categories.add(categorizePotion(item));
-        if (item.has(DataComponents.CONSUMABLE)) categories.add(DwbItemCategories.CONSUMABLE);
+        if (itemStack.is(ItemTags.ARMOR_ENCHANTABLE)) categories.add(DwbItemCategories.ARMOR);
+        if (itemStack.is(DwbItemTags.MELEE_WEAPONS)) categories.add(DwbItemCategories.MELEE_WEAPON);
+        if (itemStack.is(DwbItemTags.RANGED_WEAPONS)) categories.add(DwbItemCategories.RANGED_WEAPON);
+        if (itemStack.is(Items.SHIELD)) categories.add(DwbItemCategories.SHIELD_OR_SUPPORT);
+        if (itemStack.has(DataComponents.POTION_CONTENTS)) categories.add(categorizePotion(itemStack));
+        if (itemStack.has(DataComponents.CONSUMABLE)) categories.add(DwbItemCategories.CONSUMABLE);
         if (categories.isEmpty()) categories.add(DwbItemCategories.OTHER);
 
         return categories;

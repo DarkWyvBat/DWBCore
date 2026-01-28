@@ -3,7 +3,7 @@ package net.darkwyvbat.dwbcore.datagen;
 import net.darkwyvbat.dwbcore.world.block.DwbBlocks;
 import net.darkwyvbat.dwbcore.world.block.ProxyBlock;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
@@ -13,7 +13,7 @@ import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.client.data.models.model.TextureSlot;
 import net.minecraft.client.renderer.block.model.Variant;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -22,28 +22,28 @@ import static net.darkwyvbat.dwbcore.DwbCore.INFO;
 
 public class DwbCoreModelProvider extends FabricModelProvider {
 
-    public DwbCoreModelProvider(FabricDataOutput output) {
+    public DwbCoreModelProvider(FabricPackOutput output) {
         super(output);
     }
 
     @Override
-    public void generateBlockStateModels(BlockModelGenerators blockModelGenerators) {
+    public void generateBlockStateModels( BlockModelGenerators blockModelGenerators) {
         registerProxyBlock(blockModelGenerators);
     }
 
     @Override
-    public void generateItemModels(ItemModelGenerators itemModelGenerators) {
+    public void generateItemModels( ItemModelGenerators itemModelGenerators) {
 
     }
 
     public void registerProxyBlock(BlockModelGenerators blockStateModelGenerator) {
-        Map<ProxyBlock.Appearance, ResourceLocation> appearanceModels = new EnumMap<>(ProxyBlock.Appearance.class);
+        Map<ProxyBlock.Appearance, Identifier> appearanceModels = new EnumMap<>(ProxyBlock.Appearance.class);
         String id = BuiltInRegistries.BLOCK.getKey(DwbBlocks.PROXY_BLOCK).getPath();
         for (ProxyBlock.Appearance appearance : ProxyBlock.Appearance.values()) {
             String appearanceName = appearance.getSerializedName();
-            ResourceLocation sideTexture = INFO.idOf("block/" + id + "/" + appearanceName + "_side");
-            ResourceLocation frontTexture = INFO.idOf("block/" + id + "/" + appearanceName + "_front");
-            ResourceLocation model = INFO.idOf("block/" + id + "/" + appearanceName);
+            Identifier sideTexture = INFO.id("block/" + id + "/" + appearanceName + "_side");
+            Identifier frontTexture = INFO.id("block/" + id + "/" + appearanceName + "_front");
+            Identifier model = INFO.id("block/" + id + "/" + appearanceName);
             TextureMapping textureMapping = new TextureMapping().put(TextureSlot.SIDE, sideTexture).put(TextureSlot.FRONT, frontTexture).put(TextureSlot.TOP, sideTexture);
             ModelTemplates.CUBE_ORIENTABLE.create(model, textureMapping, blockStateModelGenerator.modelOutput);
             appearanceModels.put(appearance, model);

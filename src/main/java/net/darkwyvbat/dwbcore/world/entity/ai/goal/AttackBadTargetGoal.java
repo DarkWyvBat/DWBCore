@@ -17,7 +17,6 @@ public class AttackBadTargetGoal extends TargetGoal {
     private final PerceptionBasedMob attacker;
     private final Reputation repThreshold;
     private final TargetingConditions attackConditions;
-
     @Nullable
     private LivingEntity target;
 

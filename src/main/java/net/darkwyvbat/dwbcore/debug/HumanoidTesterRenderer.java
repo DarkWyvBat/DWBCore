@@ -10,13 +10,12 @@ import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.entity.ArmorModelSet;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
-import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.resources.Identifier;
 
 @Environment(EnvType.CLIENT)
 public class HumanoidTesterRenderer extends HumanoidLikeRenderer<HumanoidTester, HumanoidLikeRenderState, HumanoidTesterModel> {
 
-    private static final ResourceLocation TEXTURE = ResourceLocation.withDefaultNamespace("textures/entity/player/wide/steve.png");
+    private static final Identifier TEXTURE = Identifier.withDefaultNamespace("textures/entity/player/wide/steve.png");
 
     public HumanoidTesterRenderer(EntityRendererProvider.Context context, ArmorModelSet<ModelLayerLocation> innerArmor, ArmorModelSet<ModelLayerLocation> outerArmor) {
         super(context, new HumanoidTesterModel(context.bakeLayer(DwbModelLayers.HUMANOID_TESTER)), new HumanoidTesterModel(context.bakeLayer(DwbModelLayers.HUMANOID_TESTER_BABY)), 0.5F);
@@ -35,12 +34,12 @@ public class HumanoidTesterRenderer extends HumanoidLikeRenderer<HumanoidTester,
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(HumanoidLikeRenderState entity) {
+    public Identifier getTextureLocation(HumanoidLikeRenderState entity) {
         return TEXTURE;
     }
 
     @Override
-    public @NotNull HumanoidLikeRenderState createRenderState() {
+    public HumanoidLikeRenderState createRenderState() {
         return new HumanoidLikeRenderState();
     }
 }

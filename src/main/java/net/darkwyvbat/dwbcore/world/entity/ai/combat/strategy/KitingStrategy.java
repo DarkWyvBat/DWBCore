@@ -38,7 +38,7 @@ public class KitingStrategy extends CombatStrategy {
         if (state.isPathCooldownReady() && state.canSeeTarget()) {
             Vec3 dir = MovementHelper.calcRetreat(mob, state.target());
             if (MovementHelper.isSafeRetreat(mob, dir, 1.1)) {
-                MovementHelper.doRetreat(mob, dir, 0.15); //TODO MoveControl
+                MovementHelper.doRetreat(mob, dir, 0.15);
             } else {
                 if (state.isPathCooldownReady()) {
                     MovementHelper.tryPathAwayEntity((PathfinderMob) mob, mob.getTarget());

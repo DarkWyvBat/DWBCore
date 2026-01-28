@@ -26,8 +26,7 @@ public record RunPoolAction(Holder<ProxyBlockPool> pool) implements ProxyBlockAc
     public void execute(ServerLevel level, BlockPos pos, int depth) {
         if (depth > MAX_DEPTH) return;
 
-        ProxyBlockPool pool = this.pool.value();
-        pool.getRandomAction(level.random).ifPresentOrElse(action -> action.execute(level, pos, depth + 1), () -> level.setBlock(pos, pool.fallback(), 3));
+        pool.value().getRandomAction(level.getRandom()).ifPresentOrElse(action -> action.execute(level, pos, depth + 1), () -> level.setBlock(pos, pool.value().fallback(), 3));
     }
 
     @Override

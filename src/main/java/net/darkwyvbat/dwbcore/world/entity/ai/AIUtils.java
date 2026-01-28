@@ -5,13 +5,11 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
 public final class AIUtils {
 
-    @Nullable
     public static Holder<MobEffect> getSuitableAttackPotion(LivingEntity attacker, LivingEntity target, Set<Holder<MobEffect>> availableEffects) {
         if (availableEffects.contains(MobEffects.SLOWNESS) && !target.hasEffect(MobEffects.SLOWNESS)) {
             if (attacker.distanceToSqr(target) > 25.0)

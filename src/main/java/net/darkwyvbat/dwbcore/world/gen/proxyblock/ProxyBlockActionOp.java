@@ -1,8 +1,8 @@
 package net.darkwyvbat.dwbcore.world.gen.proxyblock;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.function.Consumer;
 
-public record ProxyBlockActionOp<T>(ResourceLocation path, Consumer<T> consumer) {
+public record ProxyBlockActionOp<T>(Identifier id, Consumer<T> consumer) {
 }

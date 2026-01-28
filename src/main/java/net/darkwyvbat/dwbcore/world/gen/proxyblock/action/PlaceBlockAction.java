@@ -12,8 +12,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.pattern.BlockInWorld;
@@ -24,14 +25,14 @@ import java.util.List;
 import java.util.Optional;
 
 public record PlaceBlockAction(BlockState blockState, Optional<CompoundTag> nbt,
-                               boolean copyFacing, List<ResourceLocation> ops) implements ProxyBlockAction {
+                               boolean copyFacing, List<Identifier> ops) implements ProxyBlockAction {
 
     public static final MapCodec<PlaceBlockAction> CODEC = RecordCodecBuilder.mapCodec(i ->
             i.group(
                     BlockState.CODEC.fieldOf("block_state").forGetter(PlaceBlockAction::blockState),
                     TagParser.FLATTENED_CODEC.optionalFieldOf("nbt").forGetter(PlaceBlockAction::nbt),
                     Codec.BOOL.optionalFieldOf("copy_facing", false).forGetter(PlaceBlockAction::copyFacing),
-                    ResourceLocation.CODEC.listOf().optionalFieldOf("ops", List.of()).forGetter(PlaceBlockAction::ops)
+                    Identifier.CODEC.listOf().optionalFieldOf("ops", List.of()).forGetter(PlaceBlockAction::ops)
             ).apply(i, PlaceBlockAction::new)
     );
 
@@ -56,13 +57,13 @@ public record PlaceBlockAction(BlockState blockState, Optional<CompoundTag> nbt,
                 nbtToLoad.putInt("x", pos.getX());
                 nbtToLoad.putInt("y", pos.getY());
                 nbtToLoad.putInt("z", pos.getZ());
-                blockEntity.loadWithComponents(TagValueInput.create(null, level.registryAccess(), nbtToLoad));
+                blockEntity.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), nbtToLoad));
                 blockEntity.setChanged();
             }
         });
         if (!ops.isEmpty()) {
             BlockInWorld blockInWorld = new BlockInWorld(level, pos, true);
-            for (ResourceLocation id : ops)
+            for (Identifier id : ops)
                 ProxyBlockActionOps.run(id, blockInWorld);
         }
     }

@@ -23,6 +23,6 @@ public record ProxyBlockPool(BlockState fallback, WeightedList<ProxyBlockAction>
     );
 
     public Optional<ProxyBlockAction> getRandomAction(RandomSource random) {
-        return this.entries.getRandom(random);
+        return entries.getRandom(random);
     }
 }

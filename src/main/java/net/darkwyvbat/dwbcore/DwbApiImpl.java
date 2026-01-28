@@ -9,7 +9,6 @@ public final class DwbApiImpl implements DwbApi {
     private DwbApiImpl() {
     }
 
-
     @Override
     public ModInfo getInfo() {
         return DwbCore.INFO;

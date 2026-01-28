@@ -10,9 +10,9 @@ import net.minecraft.resources.ResourceKey;
 import static net.darkwyvbat.dwbcore.DwbCore.INFO;
 
 public final class DwbRegistries {
-    public static final ResourceKey<Registry<ProxyBlockPool>> PROXY_BLOCK_POOL = ResourceKey.createRegistryKey(INFO.idOf("action_pool"));
-    public static final ResourceKey<Registry<ProxyBlockActionType<?>>> PROXY_BLOCK_ACTION_TYPE_KEY = ResourceKey.createRegistryKey(INFO.idOf("proxy_block_action_type"));
-    public static final Registry<ProxyBlockActionType<?>> PROXY_BLOCK_ACTION_TYPE = FabricRegistryBuilder.createSimple(PROXY_BLOCK_ACTION_TYPE_KEY).buildAndRegister();
+    public static final ResourceKey<Registry<ProxyBlockPool>> PROXY_BLOCK_POOL = ResourceKey.createRegistryKey(INFO.id("action_pool"));
+    public static final ResourceKey<Registry<ProxyBlockActionType<?>>> PROXY_BLOCK_ACTION_TYPE_KEY = ResourceKey.createRegistryKey(INFO.id("proxy_block_action_type"));
+    public static final Registry<ProxyBlockActionType<?>> PROXY_BLOCK_ACTION_TYPE = FabricRegistryBuilder.create(PROXY_BLOCK_ACTION_TYPE_KEY).buildAndRegister();
 
     public static void init() {
         DynamicRegistries.register(PROXY_BLOCK_POOL, ProxyBlockPool.CODEC);

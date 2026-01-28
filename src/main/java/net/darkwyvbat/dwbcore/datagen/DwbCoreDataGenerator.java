@@ -9,7 +9,6 @@ import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricDynamicRegistryProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistrySetBuilder;
-import org.jetbrains.annotations.NotNull;
 
 public class DwbCoreDataGenerator implements DataGeneratorEntrypoint {
 
@@ -18,8 +17,8 @@ public class DwbCoreDataGenerator implements DataGeneratorEntrypoint {
         FabricDataGenerator.Pack pack = generator.createPack();
         pack.addProvider(DwbCoreModelProvider::new);
 
-        pack.addProvider(DwbCoreItemTagProvider::new);
-        pack.addProvider(DwbCoreBlockTagProvider::new);
+        pack.addProvider(DwbCoreItemTagsProvider::new);
+        pack.addProvider(DwbCoreBlockTagsProvider::new);
 
         pack.addProvider((o, r) -> new FabricDynamicRegistryProvider(o, r) {
             @Override
@@ -28,7 +27,7 @@ public class DwbCoreDataGenerator implements DataGeneratorEntrypoint {
             }
 
             @Override
-            public @NotNull String getName() {
+            public String getName() {
                 return "ProxyBlock Pools";
             }
         });

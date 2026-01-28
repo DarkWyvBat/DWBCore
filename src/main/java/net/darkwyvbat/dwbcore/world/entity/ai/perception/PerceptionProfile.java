@@ -1,13 +1,14 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.perception;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.util.Mth;
 
 //TODO
 public class PerceptionProfile {
     private int dangerLevel;
 
-    public static final Codec<PerceptionProfile> CODEC = Codec.unit(new PerceptionProfile());
+    public static final Codec<PerceptionProfile> CODEC = MapCodec.unit(new PerceptionProfile()).codec();
 
     public int getDangerLevel() {
         return dangerLevel;

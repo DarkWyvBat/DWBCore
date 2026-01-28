@@ -3,11 +3,8 @@ package net.darkwyvbat.dwbcore.util.collection;
 import java.util.Map;
 import java.util.TreeMap;
 
-public final class RangeMapper<T extends Number & Comparable<T>, V> {
-    private final TreeMap<T, V> thresholds;
-    private final V defaultValue;
-
-    private RangeMapper(TreeMap<T, V> thresholds, V defaultValue) {
+public record RangeMapper<T extends Number & Comparable<T>, V>(TreeMap<T, V> thresholds, V defaultValue) {
+    public RangeMapper(TreeMap<T, V> thresholds, V defaultValue) {
         this.thresholds = new TreeMap<>(thresholds);
         this.defaultValue = defaultValue;
     }

@@ -60,7 +60,7 @@ public final class WeaponCombatUsage {
                 return;
             }
             if (state.attacker().getTicksUsingItem() >= CrossbowItem.getChargeDuration(item, state.attacker())) {
-                item.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.of(new ItemStack(Items.ARROW)));
+                item.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.of(new ItemStackTemplate(Items.ARROW)));
                 state.attacker().releaseUsingItem();
                 state.startRangedCooldown(state.config().rangedConfig().cd());
             }

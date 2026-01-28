@@ -9,7 +9,7 @@ public enum DangerLevel implements Valued<Integer> {
     ANNOYING(-10),
     HARMLESS(0),
     ALLY(10),
-    HELPER(100);
+    FRIEND(100);
 
     private final int value;
 
@@ -19,6 +19,6 @@ public enum DangerLevel implements Valued<Integer> {
 
     @Override
     public Integer getValue() {
-        return this.value;
+        return value;
     }
 }

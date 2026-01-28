@@ -1,6 +1,5 @@
 package net.darkwyvbat.dwbcore.debug;
 
-import net.darkwyvbat.dwbcore.util.PoorRandom;
 import net.darkwyvbat.dwbcore.util.time.Timeline;
 import net.darkwyvbat.dwbcore.world.entity.AbstractHumanoidEntity;
 import net.darkwyvbat.dwbcore.world.entity.CombatantInventoryHumanoid;
@@ -24,7 +23,7 @@ import net.darkwyvbat.dwbcore.world.entity.inventory.preset.ItemComparators;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -40,7 +39,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 public class HumanoidTester extends CombatantInventoryHumanoid implements GrowableMob<HumanoidTester> {
 
     private static final EntityDataAccessor<Boolean> DATA_BABY_ID = SynchedEntityData.defineId(HumanoidTester.class, EntityDataSerializers.BOOLEAN);
-    private static final AttributeModifier SPEED_MODIFIER_BABY = new AttributeModifier(ResourceLocation.withDefaultNamespace("baby"), 0.2F, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+    private static final AttributeModifier SPEED_MODIFIER_BABY = new AttributeModifier(Identifier.withDefaultNamespace("baby"), 0.2F, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
 
     private final Timeline<HumanoidTester> timeline = new Timeline<>(this);
 
@@ -55,7 +54,7 @@ public class HumanoidTester extends CombatantInventoryHumanoid implements Growab
             .inspector(DwbItemCategories.RANGED_WEAPON, ItemInspectors.FILL_EMPTY_SLOT)
             .inspector(DwbItemCategories.SHIELD_OR_SUPPORT, ItemInspectors.FILL_EMPTY_SLOT)
             .inspector(DwbItemCategories.ARMOR, ItemInspectors.ARMOR_UPGRADE)
-            .item(PoorRandom.quickProb(0.4F) ? Items.IRON_AXE : Items.AIR)
+            .item(Items.IRON_AXE)
             .build();
 
     public HumanoidTester(EntityType<? extends HumanoidTester> entityType, Level level) {

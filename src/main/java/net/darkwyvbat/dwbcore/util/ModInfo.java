@@ -1,9 +1,9 @@
 package net.darkwyvbat.dwbcore.util;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
-public record ModInfo(String id, String version, String name) {
-    public ResourceLocation idOf(String path) {
-        return ResourceLocation.fromNamespaceAndPath(id, path);
+public record ModInfo(String namespace, String version, String name) {
+    public Identifier id(String id) {
+        return Identifier.fromNamespaceAndPath(namespace, id);
     }
 }

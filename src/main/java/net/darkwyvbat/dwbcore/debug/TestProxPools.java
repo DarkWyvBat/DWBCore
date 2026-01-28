@@ -52,6 +52,6 @@ public class TestProxPools {
     }
 
     private static ResourceKey<ProxyBlockPool> k(String i) {
-        return ResourceKey.create(DwbRegistries.PROXY_BLOCK_POOL, INFO.idOf(i));
+        return ResourceKey.create(DwbRegistries.PROXY_BLOCK_POOL, INFO.id(i));
     }
 }

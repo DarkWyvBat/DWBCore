@@ -1,8 +1,8 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.opinion;
 
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.animal.IronGolem;
-import net.minecraft.world.entity.animal.Ocelot;
+import net.minecraft.world.entity.animal.feline.Ocelot;
+import net.minecraft.world.entity.animal.golem.IronGolem;
 import net.minecraft.world.entity.animal.sheep.Sheep;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.warden.Warden;

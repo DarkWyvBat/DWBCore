@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 public class DwbCore implements ModInitializer {
 
     public static final ModInfo INFO = new ModInfo("dwbcore", "1.0.0", "DWB Core");
-    public static final Logger LOGGER = LoggerFactory.getLogger(INFO.id());
+    public static final Logger LOGGER = LoggerFactory.getLogger(INFO.namespace());
     public static final boolean IS_DEV = FabricLoader.getInstance().isDevelopmentEnvironment();
 
     @Override

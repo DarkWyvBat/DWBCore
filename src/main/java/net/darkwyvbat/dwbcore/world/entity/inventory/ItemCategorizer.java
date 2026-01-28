@@ -5,5 +5,5 @@ import net.minecraft.world.item.ItemStack;
 import java.util.Set;
 
 public interface ItemCategorizer {
-    Set<ItemCategory> categorize(ItemStack item);
+    Set<ItemCategory> categorize(ItemStack itemStack);
 }

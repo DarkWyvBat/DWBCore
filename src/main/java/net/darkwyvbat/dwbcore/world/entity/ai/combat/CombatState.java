@@ -87,7 +87,7 @@ public class CombatState implements CombatStateView {
     }
 
     @Override
-    public CombatCooldowns getCooldowns() {
+    public CombatCooldowns cooldowns() {
         return cooldowns;
     }
 

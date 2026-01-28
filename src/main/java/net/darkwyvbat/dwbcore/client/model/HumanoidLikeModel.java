@@ -3,21 +3,23 @@ package net.darkwyvbat.dwbcore.client.model;
 import net.darkwyvbat.dwbcore.client.renderer.entity.HumanoidLikeRenderState;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.resources.Identifier;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
-public class HumanoidLikeModel<S extends HumanoidLikeRenderState> extends HumanoidModel<S> {
+public class HumanoidLikeModel<S extends HumanoidLikeRenderState> extends HumanoidModel<@NotNull S> {
     public HumanoidLikeModel(ModelPart modelPart) {
         super(modelPart);
     }
 
-    public HumanoidLikeModel(ModelPart modelPart, Function<ResourceLocation, RenderType> function) {
+    public HumanoidLikeModel(ModelPart modelPart, Function<Identifier, RenderType> function) {
         super(modelPart, function);
     }
+
     protected void setupAttackAnimation(S state, float f) {
-        super.setupAttackAnimation(state, f);
+        super.setupAttackAnimation(state);
     }
 
     @Override

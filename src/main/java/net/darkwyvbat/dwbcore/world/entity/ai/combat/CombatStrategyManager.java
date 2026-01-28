@@ -48,7 +48,7 @@ public class CombatStrategyManager {
         prevStrategy = null;
         currentStrategy = defaultStrategy;
         strategyChangeCD.reset();
-        state.getCooldowns().reset();
+        state.cooldowns().reset();
         currentStrategy.start(state, prevStrategy);
     }
 

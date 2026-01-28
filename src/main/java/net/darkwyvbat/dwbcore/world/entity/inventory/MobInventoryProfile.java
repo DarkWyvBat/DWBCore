@@ -4,11 +4,12 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import net.darkwyvbat.dwbcore.world.entity.ai.ItemInspector;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 
 import java.util.*;
 
 public record MobInventoryProfile(InventoryConfig inventoryConfig, Map<ItemCategory, ItemInspector> itemInspectors,
-                                  Set<ItemStack> items) {
+                                  Set<ItemStackTemplate> items) {
 
     public static Builder builder(ItemCategorizer categorizer) {
         return new Builder(InventoryConfig.builder(categorizer));
@@ -21,7 +22,7 @@ public record MobInventoryProfile(InventoryConfig inventoryConfig, Map<ItemCateg
     public static class Builder {
         private final InventoryConfig.Builder configBuilder;
         private final Map<ItemCategory, ItemInspector> itemInspectors = new Object2ObjectArrayMap<>();
-        private final Set<ItemStack> items = new HashSet<>();
+        private final Set<ItemStackTemplate> items = new HashSet<>();
 
         private Builder(InventoryConfig.Builder configBuilder) {
             this.configBuilder = configBuilder;
@@ -70,16 +71,28 @@ public record MobInventoryProfile(InventoryConfig inventoryConfig, Map<ItemCateg
         }
 
         public Builder item(Item item) {
-            return item(new ItemStack(item));
-        }
-
-        public Builder item(ItemStack item) {
-            items.add(item);
+            items.add(new ItemStackTemplate(item));
             return this;
         }
 
-        public Builder items(ItemStack... items) {
-            Collections.addAll(this.items, items);
+        public Builder item(ItemStack itemStack) {
+            items.add(ItemStackTemplate.fromNonEmptyStack(itemStack));
+            return this;
+        }
+
+        public Builder item(ItemStackTemplate itemStackTemplate) {
+            items.add(itemStackTemplate);
+            return this;
+        }
+
+        public Builder items(Item... items) {
+            for (Item item : items)
+                this.items.add(new ItemStackTemplate(item));
+            return this;
+        }
+
+        public Builder items(ItemStackTemplate... itemStackTemplates) {
+            Collections.addAll(items, itemStackTemplates);
             return this;
         }
 

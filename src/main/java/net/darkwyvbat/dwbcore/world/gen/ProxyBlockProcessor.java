@@ -9,7 +9,6 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlac
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessor;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
-import org.jetbrains.annotations.NotNull;
 
 public class ProxyBlockProcessor extends StructureProcessor {
     public static final ProxyBlockProcessor INSTANCE = new ProxyBlockProcessor();
@@ -33,7 +32,7 @@ public class ProxyBlockProcessor extends StructureProcessor {
     }
 
     @Override
-    protected @NotNull StructureProcessorType<?> getType() {
+    protected StructureProcessorType<?> getType() {
         return DwbStructureProcessorType.PROXY_BLOCK;
     }
 }

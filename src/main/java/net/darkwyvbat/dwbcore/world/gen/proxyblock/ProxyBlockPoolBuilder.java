@@ -6,7 +6,7 @@ import net.darkwyvbat.dwbcore.world.gen.proxyblock.action.SpawnEntityAction;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Block;
@@ -25,18 +25,18 @@ public class ProxyBlockPoolBuilder {
     private int pendingWeight;
 
     public ProxyBlockPoolBuilder op(ProxyBlockActionOp<?>... ops) {
-        List<ResourceLocation> ids = Arrays.stream(ops).map(ProxyBlockActionOp::path).toList();
+        List<Identifier> ids = Arrays.stream(ops).map(ProxyBlockActionOp::id).toList();
         if (pendingAction instanceof SpawnEntityAction(
-                EntityType<?> entityType, Optional<CompoundTag> nbt, List<ResourceLocation> ops1
+                EntityType<?> entityType, Optional<CompoundTag> nbt, List<Identifier> ops1
         )) {
-            List<ResourceLocation> forAdd = new ArrayList<>(ops1);
+            List<Identifier> forAdd = new ArrayList<>(ops1);
             forAdd.addAll(ids);
             pendingAction = new SpawnEntityAction(entityType, nbt, forAdd);
 
         } else if (pendingAction instanceof PlaceBlockAction(
-                BlockState blockState, Optional<CompoundTag> nbt, boolean copyFacing, List<ResourceLocation> ops1
+                BlockState blockState, Optional<CompoundTag> nbt, boolean copyFacing, List<Identifier> ops1
         )) {
-            List<ResourceLocation> forAdd = new ArrayList<>(ops1);
+            List<Identifier> forAdd = new ArrayList<>(ops1);
             forAdd.addAll(ids);
             pendingAction = new PlaceBlockAction(blockState, nbt, copyFacing, forAdd);
         }

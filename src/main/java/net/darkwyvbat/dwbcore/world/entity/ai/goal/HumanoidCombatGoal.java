@@ -55,7 +55,7 @@ public class HumanoidCombatGoal extends Goal {
         super.stop();
         strategyManager.onStop();
 
-        this.target = null;
+        target = null;
         mob.setTarget(null);
         mob.setAggressive(false);
         mob.getNavigation().stop();
