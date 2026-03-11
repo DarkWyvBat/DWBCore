@@ -3,9 +3,9 @@ package net.darkwyvbat.dwbcore.world.gen.proxyblock;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.RandomizableContainer;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import net.minecraft.world.level.storage.loot.LootTable;
 
@@ -19,41 +19,49 @@ import static net.darkwyvbat.dwbcore.DwbCore.LOGGER;
 public class ProxyBlockActionOps {
     private static final Map<Identifier, Consumer<?>> OPS = new HashMap<>();
 
-    public static final ProxyBlockActionOp<Mob> BABY = register(INFO.id("baby"), e -> e.setBaby(true));
+    public static final ProxyBlockActionOp<Mob> MOB_BABY = register(INFO.id("baby"), e -> e.setBaby(true));
 
     public static void init() {
     }
 
     public static ProxyBlockPoolBuilder chest() {
-        return new ProxyBlockPoolBuilder().block(Blocks.CHEST, true, 1);
+        return new ProxyBlockPoolBuilder().block(Blocks.CHEST, true);
     }
 
     public static ProxyBlockPoolBuilder trappedChest() {
-        return new ProxyBlockPoolBuilder().block(Blocks.TRAPPED_CHEST, true, 1);
+        return new ProxyBlockPoolBuilder().block(Blocks.TRAPPED_CHEST, true);
+    }
+
+    public static ProxyBlockPoolBuilder dispenser() {
+        return new ProxyBlockPoolBuilder().block(Blocks.DISPENSER, true);
+    }
+
+    public static ProxyBlockPoolBuilder dropper() {
+        return new ProxyBlockPoolBuilder().block(Blocks.DROPPER, true);
     }
 
     public static ProxyBlockPoolBuilder barrel() {
-        return new ProxyBlockPoolBuilder().block(Blocks.BARREL, true, 1);
+        return new ProxyBlockPoolBuilder().block(Blocks.BARREL, true);
     }
 
     public static ProxyBlockPoolBuilder decoratedPot() {
-        return new ProxyBlockPoolBuilder().block(Blocks.DECORATED_POT, 1);
+        return new ProxyBlockPoolBuilder().block(Blocks.DECORATED_POT);
     }
 
     public static ProxyBlockPoolBuilder furnace() {
-        return new ProxyBlockPoolBuilder().block(Blocks.FURNACE, true, 1);
+        return new ProxyBlockPoolBuilder().block(Blocks.FURNACE, true);
     }
 
     public static ProxyBlockPoolBuilder blastFurnace() {
-        return new ProxyBlockPoolBuilder().block(Blocks.BLAST_FURNACE, true, 1);
+        return new ProxyBlockPoolBuilder().block(Blocks.BLAST_FURNACE, true);
     }
 
     public static ProxyBlockPoolBuilder smoker() {
-        return new ProxyBlockPoolBuilder().block(Blocks.SMOKER, true, 1);
+        return new ProxyBlockPoolBuilder().block(Blocks.SMOKER, true);
     }
 
     public static ProxyBlockPoolBuilder craftingTable() {
-        return new ProxyBlockPoolBuilder().block(Blocks.CRAFTING_TABLE, 1);
+        return new ProxyBlockPoolBuilder().block(Blocks.CRAFTING_TABLE);
     }
 
     public static <T> ProxyBlockActionOp<T> register(Identifier id, Consumer<T> consumer) {
@@ -74,9 +82,9 @@ public class ProxyBlockActionOps {
     }
 
     private static void applyLootTable(BlockInWorld blockInWorld, ResourceKey<LootTable> lootTable) {
-        if (blockInWorld.getEntity() instanceof RandomizableContainerBlockEntity rbe) {
+        if (blockInWorld.getEntity() instanceof RandomizableContainer container) {
             if (blockInWorld.getLevel() instanceof ServerLevel serverLevel)
-                rbe.setLootTable(lootTable, serverLevel.getRandom().nextLong());
+                container.setLootTable(lootTable, serverLevel.getRandom().nextLong());
         }
     }
 
