@@ -22,7 +22,7 @@ public class TestProxPools {
 
     public static void bootstrap(BootstrapContext<ProxyBlockPool> context) {
         context.register(ENTITY, new ProxyBlockPoolBuilder()
-                .entity(EntityType.ZOMBIE, "{equipment:{mainhand:{id:dirt},head:{id:iron_helmet},chest:{id:iron_chestplate}}}", 1)
+                .entity(EntityType.ZOMBIE, "{equipment:{mainhand:{id:dirt},head:{id:iron_helmet},chest:{id:iron_chestplate}}}", 1, false)
                 .build()
         );
         context.register(BLOCK, new ProxyBlockPoolBuilder()

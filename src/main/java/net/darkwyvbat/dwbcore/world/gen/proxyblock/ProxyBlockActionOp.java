@@ -4,5 +4,5 @@ import net.minecraft.resources.Identifier;
 
 import java.util.function.Consumer;
 
-public record ProxyBlockActionOp<T>(Identifier id, Consumer<T> consumer) {
+public record ProxyBlockActionOp<T>(Identifier id, Consumer<T> action) {
 }

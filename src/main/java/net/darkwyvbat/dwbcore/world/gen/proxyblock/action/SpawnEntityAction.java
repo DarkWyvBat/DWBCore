@@ -1,5 +1,6 @@
 package net.darkwyvbat.dwbcore.world.gen.proxyblock.action;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.darkwyvbat.dwbcore.world.gen.proxyblock.ProxyBlockAction;
@@ -23,13 +24,14 @@ import java.util.List;
 import java.util.Optional;
 
 public record SpawnEntityAction(EntityType<?> entityType, Optional<CompoundTag> nbt,
-                                List<Identifier> ops) implements ProxyBlockAction {
+                                List<Identifier> ops, boolean finalizeSpawn) implements ProxyBlockAction {
 
     public static final MapCodec<SpawnEntityAction> CODEC = RecordCodecBuilder.mapCodec(i ->
             i.group(
                     BuiltInRegistries.ENTITY_TYPE.byNameCodec().fieldOf("entity").forGetter(SpawnEntityAction::entityType),
                     TagParser.FLATTENED_CODEC.optionalFieldOf("nbt").forGetter(SpawnEntityAction::nbt),
-                    Identifier.CODEC.listOf().optionalFieldOf("ops", List.of()).forGetter(SpawnEntityAction::ops)
+                    Identifier.CODEC.listOf().optionalFieldOf("ops", List.of()).forGetter(SpawnEntityAction::ops),
+                    Codec.BOOL.optionalFieldOf("finalize_spawn", true).forGetter(SpawnEntityAction::finalizeSpawn)
             ).apply(i, SpawnEntityAction::new)
     );
 
@@ -43,7 +45,7 @@ public record SpawnEntityAction(EntityType<?> entityType, Optional<CompoundTag> 
             entity.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
             for (Identifier id : ops)
                 ProxyBlockActionOps.run(id, entity);
-            if (entity instanceof Mob mob)
+            if (finalizeSpawn && entity instanceof Mob mob)
                 mob.finalizeSpawn(level, level.getCurrentDifficultyAt(mob.blockPosition()), EntitySpawnReason.STRUCTURE, null);
             level.addFreshEntity(entity);
             level.removeBlock(pos, true);
