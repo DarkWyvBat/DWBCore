@@ -5,6 +5,7 @@ import com.mojang.math.Axis;
 import net.darkwyvbat.dwbcore.client.model.HumanoidLikeModel;
 import net.darkwyvbat.dwbcore.world.entity.AbstractHumanoidEntity;
 import net.darkwyvbat.dwbcore.world.entity.MobState;
+import net.darkwyvbat.dwbcore.world.item.ArmPosingItem;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
@@ -37,6 +38,10 @@ public abstract class HumanoidLikeRenderer<T extends AbstractHumanoidEntity, S e
     protected static HumanoidModel.ArmPose getArmPose(AbstractHumanoidEntity entity, ItemStack itemStack, InteractionHand interactionHand) {
         if (itemStack.isEmpty())
             return HumanoidModel.ArmPose.EMPTY;
+
+        if (itemStack.getItem() instanceof ArmPosingItem armPosingItem)
+            return armPosingItem.getArmPose(entity, interactionHand, itemStack);
+
         if (!entity.swinging && itemStack.is(Items.CROSSBOW) && CrossbowItem.isCharged(itemStack))
             return HumanoidModel.ArmPose.CROSSBOW_HOLD;
 

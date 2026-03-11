@@ -5,7 +5,8 @@
 	"mixins": [
       "LivingEntityMixin",
       "NodeMixin",
-      "SinglePoolElementMixin"
+      "SinglePoolElementMixin",
+      "AvatarRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
