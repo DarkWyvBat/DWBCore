@@ -1,5 +1,6 @@
 package net.darkwyvbat.dwbcore.registry;
 
+import com.mojang.serialization.MapCodec;
 import net.darkwyvbat.dwbcore.world.gen.proxyblock.ProxyBlockAction;
 import net.darkwyvbat.dwbcore.world.gen.proxyblock.ProxyBlockActionType;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
@@ -25,6 +26,10 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
+import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
+import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElementType;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessor;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
 
 import java.util.Arrays;
 import java.util.function.BiFunction;
@@ -120,5 +125,13 @@ public final class RegistrationHelper {
 
     public static <C extends FeatureConfiguration, F extends Feature<C>> F registerFeature(Identifier id, F feature) {
         return Registry.register(BuiltInRegistries.FEATURE, id, feature);
+    }
+
+    public static <P extends StructureProcessor> StructureProcessorType<P> registerStructProcessor(Identifier id, MapCodec<P> codec) {
+        return Registry.register(BuiltInRegistries.STRUCTURE_PROCESSOR, id, () -> codec);
+    }
+
+    public static <P extends StructurePoolElement> StructurePoolElementType<P> registerStructPoolElement(Identifier id, MapCodec<P> codec) {
+        return Registry.register(BuiltInRegistries.STRUCTURE_POOL_ELEMENT, id, () -> codec);
     }
 }

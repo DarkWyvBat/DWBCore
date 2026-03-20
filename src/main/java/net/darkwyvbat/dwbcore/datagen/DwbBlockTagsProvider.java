@@ -8,8 +8,8 @@ import net.minecraft.tags.BlockTags;
 
 import java.util.concurrent.CompletableFuture;
 
-public class DwbCoreBlockTagsProvider extends FabricTagsProvider.BlockTagsProvider {
-    public DwbCoreBlockTagsProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+public class DwbBlockTagsProvider extends FabricTagsProvider.BlockTagsProvider {
+    public DwbBlockTagsProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
         super(output, registriesFuture);
     }
 

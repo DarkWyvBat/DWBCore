@@ -9,8 +9,8 @@ import net.minecraft.world.item.Items;
 
 import java.util.concurrent.CompletableFuture;
 
-public class DwbCoreItemTagsProvider extends FabricTagsProvider.ItemTagsProvider {
-    public DwbCoreItemTagsProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+public class DwbItemTagsProvider extends FabricTagsProvider.ItemTagsProvider {
+    public DwbItemTagsProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
         super(output, registriesFuture);
     }
 

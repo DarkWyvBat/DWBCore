@@ -15,10 +15,10 @@ public class DwbCoreDataGenerator implements DataGeneratorEntrypoint {
     @Override
     public void onInitializeDataGenerator(FabricDataGenerator generator) {
         FabricDataGenerator.Pack pack = generator.createPack();
-        pack.addProvider(DwbCoreModelProvider::new);
+        pack.addProvider(DwbModelProvider::new);
 
-        pack.addProvider(DwbCoreItemTagsProvider::new);
-        pack.addProvider(DwbCoreBlockTagsProvider::new);
+        pack.addProvider(DwbItemTagsProvider::new);
+        pack.addProvider(DwbBlockTagsProvider::new);
 
         pack.addProvider((o, r) -> new FabricDynamicRegistryProvider(o, r) {
             @Override
