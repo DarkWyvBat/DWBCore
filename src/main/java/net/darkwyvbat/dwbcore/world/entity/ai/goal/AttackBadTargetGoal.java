@@ -8,7 +8,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 
@@ -17,7 +16,6 @@ public class AttackBadTargetGoal extends TargetGoal {
     private final PerceptionBasedMob attacker;
     private final Reputation repThreshold;
     private final TargetingConditions attackConditions;
-    @Nullable
     private LivingEntity target;
 
     public AttackBadTargetGoal(PerceptionBasedMob mob, Reputation repThreshold) {

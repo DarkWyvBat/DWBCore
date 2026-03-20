@@ -19,6 +19,6 @@ public enum Reputation implements Valued<Integer> {
 
     @Override
     public Integer getValue() {
-        return this.value;
+        return value;
     }
 }

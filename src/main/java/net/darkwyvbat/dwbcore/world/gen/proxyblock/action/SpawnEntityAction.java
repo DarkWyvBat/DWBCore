@@ -42,7 +42,7 @@ public record SpawnEntityAction(EntityType<?> entityType, Optional<CompoundTag> 
         Entity entity = entityType.create(level, EntitySpawnReason.STRUCTURE);
         if (entity != null) {
             nbt.ifPresent(t -> entity.load(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), t)));
-            entity.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+            entity.snapTo(pos.getBottomCenter());
             for (Identifier id : ops)
                 ProxyBlockActionOps.run(id, entity);
             if (finalizeSpawn && entity instanceof Mob mob)

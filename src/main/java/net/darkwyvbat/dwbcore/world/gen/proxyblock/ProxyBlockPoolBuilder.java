@@ -27,11 +27,11 @@ public class ProxyBlockPoolBuilder {
     public ProxyBlockPoolBuilder op(ProxyBlockActionOp<?>... ops) {
         List<Identifier> ids = Arrays.stream(ops).map(ProxyBlockActionOp::id).toList();
         if (pendingAction instanceof SpawnEntityAction(
-                EntityType<?> entityType, Optional<CompoundTag> nbt, List<Identifier> ops1
+                EntityType<?> entityType, Optional<CompoundTag> nbt, List<Identifier> ops1, boolean finalizeSpawn
         )) {
             List<Identifier> forAdd = new ArrayList<>(ops1);
             forAdd.addAll(ids);
-            pendingAction = new SpawnEntityAction(entityType, nbt, forAdd);
+            pendingAction = new SpawnEntityAction(entityType, nbt, forAdd, finalizeSpawn);
 
         } else if (pendingAction instanceof PlaceBlockAction(
                 BlockState blockState, Optional<CompoundTag> nbt, boolean copyFacing, boolean checkNeighbors,
@@ -49,12 +49,12 @@ public class ProxyBlockPoolBuilder {
     }
 
     public ProxyBlockPoolBuilder entity(EntityType<?> entity, int weight) {
-        return entity(entity, null, weight);
+        return entity(entity, null, weight, true);
     }
 
-    public ProxyBlockPoolBuilder entity(EntityType<?> entity, String nbt, int weight) {
+    public ProxyBlockPoolBuilder entity(EntityType<?> entity, String nbt, int weight, boolean finalizeSpawn) {
         commit();
-        pendingAction = new SpawnEntityAction(entity, parseNbt(nbt), List.of());
+        pendingAction = new SpawnEntityAction(entity, parseNbt(nbt), List.of(), finalizeSpawn);
         pendingWeight = weight;
         return this;
     }

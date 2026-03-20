@@ -4,15 +4,12 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.darkwyvbat.dwbcore.client.DwbModelLayers;
 import net.darkwyvbat.dwbcore.client.renderer.entity.HumanoidLikeRenderState;
 import net.darkwyvbat.dwbcore.client.renderer.entity.HumanoidLikeRenderer;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.entity.ArmorModelSet;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.resources.Identifier;
 
-@Environment(EnvType.CLIENT)
 public class HumanoidTesterRenderer extends HumanoidLikeRenderer<HumanoidTester, HumanoidLikeRenderState, HumanoidTesterModel> {
 
     private static final Identifier TEXTURE = Identifier.withDefaultNamespace("textures/entity/player/wide/steve.png");
