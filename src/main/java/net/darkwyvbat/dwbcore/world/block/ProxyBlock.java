@@ -109,17 +109,17 @@ public class ProxyBlock extends BaseEntityBlock {
 
         private final String name;
 
-        Appearance(final String name) {
+        Appearance(String name) {
             this.name = name;
         }
 
         public String toString() {
-            return this.name;
+            return name;
         }
 
         @Override
         public String getSerializedName() {
-            return this.name;
+            return name;
         }
     }
 }

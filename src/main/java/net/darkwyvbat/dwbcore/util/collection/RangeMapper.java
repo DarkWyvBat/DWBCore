@@ -48,7 +48,7 @@ public record RangeMapper<T extends Number & Comparable<T>, V>(TreeMap<T, V> thr
         }
 
         public Builder<T, V> setDefault(V value) {
-            this.defaultValue = value;
+            defaultValue = value;
             return this;
         }
 

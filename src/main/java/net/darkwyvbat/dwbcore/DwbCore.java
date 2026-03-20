@@ -7,7 +7,8 @@ import net.darkwyvbat.dwbcore.registry.DwbRegistries;
 import net.darkwyvbat.dwbcore.util.ModInfo;
 import net.darkwyvbat.dwbcore.world.block.DwbBlocks;
 import net.darkwyvbat.dwbcore.world.block.entity.DwbBlockEntityType;
-import net.darkwyvbat.dwbcore.world.gen.DwbStructureProcessorType;
+import net.darkwyvbat.dwbcore.world.gen.DwbPoolElementTypes;
+import net.darkwyvbat.dwbcore.world.gen.DwbStructProcessorType;
 import net.darkwyvbat.dwbcore.world.gen.proxyblock.ProxyBlockActionOps;
 import net.darkwyvbat.dwbcore.world.gen.proxyblock.ProxyBlockActionTypes;
 import net.darkwyvbat.dwbcore.world.item.DwbItems;
@@ -29,14 +30,15 @@ public class DwbCore implements ModInitializer {
         if (IS_DEV)
             DwbDebugContent.init();
 
-        DwbEntityDataSerializers.init();
+        DwbEntityDataSerializers.register();
         DwbRegistries.init();
         DwbEvents.init();
         DwbBlocks.init();
         DwbBlockEntityType.init();
         ProxyBlockActionTypes.init();
         DwbItems.init();
-        DwbStructureProcessorType.init();
+        DwbStructProcessorType.init();
         ProxyBlockActionOps.init();
+        DwbPoolElementTypes.init();
     }
 }

@@ -12,27 +12,26 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 
 public class ProxyBlockProcessor extends StructureProcessor {
     public static final ProxyBlockProcessor INSTANCE = new ProxyBlockProcessor();
-
     public static final MapCodec<ProxyBlockProcessor> CODEC = MapCodec.unit(() -> ProxyBlockProcessor.INSTANCE);
 
     @Override
     public StructureTemplate.StructureBlockInfo processBlock(
-            LevelReader levelReader,
-            BlockPos pos,
-            BlockPos pivot,
+            LevelReader level,
+            BlockPos targetPosition,
+            BlockPos referencePos,
             StructureTemplate.StructureBlockInfo originalBlockInfo,
-            StructureTemplate.StructureBlockInfo currentBlockInfo,
-            StructurePlaceSettings structurePlaceSettings
+            StructureTemplate.StructureBlockInfo processedBlockInfo,
+            StructurePlaceSettings settings
     ) {
-        BlockState state = currentBlockInfo.state();
+        BlockState state = processedBlockInfo.state();
         if (state.getBlock() instanceof ProxyBlock)
-            return new StructureTemplate.StructureBlockInfo(currentBlockInfo.pos(), state.setValue(ProxyBlock.EXECUTE_PROPERTY, true), currentBlockInfo.nbt());
+            return new StructureTemplate.StructureBlockInfo(processedBlockInfo.pos(), state.setValue(ProxyBlock.EXECUTE_PROPERTY, true), processedBlockInfo.nbt());
 
-        return currentBlockInfo;
+        return processedBlockInfo;
     }
 
     @Override
     protected StructureProcessorType<?> getType() {
-        return DwbStructureProcessorType.PROXY_BLOCK;
+        return DwbStructProcessorType.PROXY_BLOCK;
     }
 }

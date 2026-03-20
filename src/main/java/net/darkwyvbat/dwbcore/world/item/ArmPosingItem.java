@@ -6,7 +6,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
 public interface ArmPosingItem {
-    HumanoidModel.ArmPose getArmPose(LivingEntity entity, InteractionHand hand, ItemStack stack);
+    HumanoidModel.ArmPose getArmPose(LivingEntity entity, InteractionHand hand, ItemStack itemStack);
 
     default boolean isTwoHanded(ItemStack stack) {
         return false;

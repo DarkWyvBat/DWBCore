@@ -8,7 +8,7 @@ import net.minecraft.network.syncher.EntityDataSerializer;
 public class DwbEntityDataSerializers {
     public static final EntityDataSerializer<MobState> MOB_STATE = EntityDataSerializer.forValueType(MobState.STREAM_CODEC);
 
-    public static void init() {
+    public static void register() {
         FabricEntityDataRegistry.register(DwbCore.INFO.id("mob_state"), MOB_STATE);
     }
 }
