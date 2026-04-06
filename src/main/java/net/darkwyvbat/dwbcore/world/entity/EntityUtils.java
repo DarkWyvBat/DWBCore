@@ -84,8 +84,6 @@ public final class EntityUtils {
 
     public static boolean isValidTarget(LivingEntity entity) {
         if (entity == null || !entity.isAlive()) return false;
-        if (entity instanceof Player player && (player.isCreative() || player.isSpectator())) return false;
-
-        return true;
+        return !(entity instanceof Player player) || (!player.isCreative() && !player.isSpectator());
     }
 }

@@ -7,7 +7,6 @@ import java.util.List;
 
 public class CombatStrategyManager {
     public static final int DEFAULT_CHANGE_INTERVAL = 10;
-
     private final List<CombatStrategy> strategies;
     private final CombatStrategy defaultStrategy;
     private final TickingCooldown strategyChangeCD = new TickingCooldown();

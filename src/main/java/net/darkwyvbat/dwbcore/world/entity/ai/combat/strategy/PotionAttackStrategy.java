@@ -33,7 +33,7 @@ public class PotionAttackStrategy extends CombatStrategy {
     @Override
     public boolean canStart(CombatStateView state, CombatStrategy currentStrategy) {
         if (cd.isReady(state.timeNow()) && potionAttacker.hasAttackPotions() && MathU.isBtwn(state.distanceSqr(), 25.0, 144.0)) {
-            effect = AIUtils.getSuitableAttackPotion(state.attacker(), state.target(), potionAttacker.getAvailableAttackEffects());
+            effect = AIUtils.getSuitableAttackEffect(state.attacker(), state.target(), potionAttacker.getAvailableAttackEffects());
             return effect != null;
         }
         return false;

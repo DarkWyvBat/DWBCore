@@ -11,6 +11,8 @@ import net.darkwyvbat.dwbcore.world.entity.specs.MeleeAttacker;
 import net.darkwyvbat.dwbcore.world.entity.specs.RangedAttacker;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 
 public class MeleeStrategy extends CombatStrategy {
     private final MeleeAttacker meleeAttacker;
@@ -22,7 +24,7 @@ public class MeleeStrategy extends CombatStrategy {
 
     @Override
     public void start(CombatState state, CombatStrategy prevStrategy) {
-        state.attacker().getNavigation().stop();
+        state.startPathCooldown(0);
         meleeAttacker.prepareMelee();
         shieldStateCD.set(10);
     }
@@ -34,13 +36,15 @@ public class MeleeStrategy extends CombatStrategy {
 
     @Override
     public void tick(CombatState state) {
-        if (state.attacker() instanceof AttackBlocker attackBlocker) {
+        LivingEntity target = state.target();
+        Mob attacker = state.attacker();
+        if (attacker instanceof AttackBlocker attackBlocker) {
             if (shieldStateCD.tick()) {
                 if (attackBlocker.readyForBlockAttack()) {
-                    if (!state.attacker().isUsingItem() && (state.attacker().hurtTime != 0 || PoorRandom.quickProb(0.02F))) {
+                    if (!attacker.isUsingItem() && (attacker.hurtTime != 0 || PoorRandom.quickProb(0.02F))) {
                         attackBlocker.startBlockAttack();
                         shieldStateCD.set(20);
-                    } else if (PoorRandom.quickProb(0.01F) && state.attacker().hurtTime == 0) {
+                    } else if (PoorRandom.quickProb(0.01F) && attacker.hurtTime == 0) {
                         attackBlocker.stopBlockAttack();
                         shieldStateCD.set(10);
                     }
@@ -48,18 +52,18 @@ public class MeleeStrategy extends CombatStrategy {
                     attackBlocker.prepareForAttackBlocking();
             }
         }
-
-        if (state.isPathCooldownReady()) {
-            if (!state.attacker().isWithinMeleeAttackRange(state.target()) || !state.canSeeTarget())
-                MovementHelper.tryPathToEntity(state.attacker(), state.target(), state.config().meleeConfig().speed());
-            else
-                state.attacker().getNavigation().stop();
-            state.startPathCooldown(pathToTargetCD(state.distanceSqr()));
+        if (state.isPathCdReady()) {
+            if (!attacker.isWithinMeleeAttackRange(target) || !state.canSeeTarget())
+                MovementHelper.tryPathToTargetCd(state);
         }
-        if (state.isMeleeCooldownReady() && state.attacker().isWithinMeleeAttackRange(state.target()) && state.canSeeTarget()) {
+        if (state.isMeleeCooldownReady() && attacker.isWithinMeleeAttackRange(target) && state.canSeeTarget()) {
             state.attacker().swing(InteractionHand.MAIN_HAND);
             state.attacker().doHurtTarget((ServerLevel) state.attacker().level(), state.target());
             state.startMeleeCooldown(state.config().meleeConfig().attackCD());
+        }
+        if (attacker.tickCount % 8 == 0 && state.attacker().onGround()) {
+            double dX = target.getX() - attacker.getX(), dY = target.getY() - attacker.getY(), dZ = target.getZ() - attacker.getZ();
+            if (dX * dX + dZ * dZ < 2.5 && dY > 1.0 && dY < 3.5) attacker.getJumpControl().jump();
         }
     }
 
@@ -69,9 +73,5 @@ public class MeleeStrategy extends CombatStrategy {
             return !rangedAttacker.hasRanged() || state.distanceSqr() > state.config().rangedConfig().startDistSqr();
 
         return true;
-    }
-
-    public static int pathToTargetCD(double distSqr) {
-        return distSqr > 64 ? 40 : 10;
     }
 }

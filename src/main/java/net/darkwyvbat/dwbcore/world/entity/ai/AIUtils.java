@@ -9,7 +9,7 @@ import java.util.Set;
 
 public final class AIUtils {
 
-    public static Holder<MobEffect> getSuitableAttackPotion(LivingEntity attacker, LivingEntity target, Set<Holder<MobEffect>> availableEffects) {
+    public static Holder<MobEffect> getSuitableAttackEffect(LivingEntity attacker, LivingEntity target, Set<Holder<MobEffect>> availableEffects) {
         if (availableEffects.contains(MobEffects.SLOWNESS) && !target.hasEffect(MobEffects.SLOWNESS)) {
             if (attacker.distanceToSqr(target) > 25.0)
                 return MobEffects.SLOWNESS;

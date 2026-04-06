@@ -35,12 +35,12 @@ public class KitingStrategy extends CombatStrategy {
     public void tick(CombatState state) {
         Mob mob = state.attacker();
         WeaponCombatUsage.tryRanged(state, InteractionHand.MAIN_HAND);
-        if (state.isPathCooldownReady() && state.canSeeTarget()) {
+        if (state.isPathCdReady() && state.canSeeTarget()) {
             Vec3 dir = MovementHelper.calcRetreat(mob, state.target());
             if (MovementHelper.isSafeRetreat(mob, dir, 1.1)) {
                 MovementHelper.doRetreat(mob, dir, 0.15);
             } else {
-                if (state.isPathCooldownReady()) {
+                if (state.isPathCdReady()) {
                     MovementHelper.tryPathAwayEntity((PathfinderMob) mob, mob.getTarget());
                     state.startPathCooldown(40);
                 }

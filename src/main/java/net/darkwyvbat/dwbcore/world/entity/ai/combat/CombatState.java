@@ -82,7 +82,7 @@ public class CombatState implements CombatStateView {
     }
 
     @Override
-    public boolean isPathCooldownReady() {
+    public boolean isPathCdReady() {
         return cooldowns.path().isReady(timeNow());
     }
 

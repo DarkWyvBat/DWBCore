@@ -20,7 +20,7 @@ public interface CombatStateView {
 
     CombatCooldowns cooldowns();
 
-    boolean isPathCooldownReady();
+    boolean isPathCdReady();
 
     boolean isMeleeCooldownReady();
 
