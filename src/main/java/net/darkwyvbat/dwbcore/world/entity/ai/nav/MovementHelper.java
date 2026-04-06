@@ -1,5 +1,6 @@
 package net.darkwyvbat.dwbcore.world.entity.ai.nav;
 
+import net.darkwyvbat.dwbcore.world.entity.ai.combat.CombatState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.*;
@@ -40,9 +41,21 @@ public final class MovementHelper {
         return true;
     }
 
+    public static boolean moveToEntity(Mob mob, Entity entity, double speed) {
+        return mob.getNavigation().moveTo(entity, speed);
+    }
 
-    public static boolean tryPathToEntity(Mob mob, Entity entity) {
-        return tryPathToEntity(mob, entity, 1.0);
+    //TODO
+    public static boolean tryPathToTargetCd(CombatState state) {
+        Mob attacker = state.attacker();
+        Path path = attacker.getNavigation().createPath(state.target(), 0);
+        int cd = (state.distanceSqr() > 400 ? 40 : 10) + attacker.getRandom().nextInt(10);
+        if (path == null || !path.canReach())
+            cd *= 2;
+        state.startPathCooldown(cd);
+        if (path != null)
+            return attacker.getNavigation().moveTo(path, state.config().speedModifier());
+        return false;
     }
 
     public static boolean tryPathToEntity(Mob mob, Entity entity, double speed) {
