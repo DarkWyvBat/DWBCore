@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class FeaturedMoveControl extends MoveControl {
+public class HumanoidBaseMoveControl extends MoveControl {
     private static final float MAX_YAW_LAND = 50.0F;
     private static final float MAX_YAW_WATER = 40.0F;
     private static final float MAX_PITCH_WATER = 32.0F;
@@ -20,17 +20,15 @@ public class FeaturedMoveControl extends MoveControl {
     private static final float V_SWIM = 0.08F;
     private static final float V_BOOST = 2.0F;
     private static final float JUMP_BOOST = 0.3F;
-    private static final double MIN_DIST = 0.1;
-
     private int stuckTicks;
 
-    public FeaturedMoveControl(Mob mob) {
+    public HumanoidBaseMoveControl(Mob mob) {
         super(mob);
     }
 
     @Override
-    public void setWantedPosition(double x, double y, double z, double speed) {
-        super.setWantedPosition(x, y, z, speed);
+    public void setWantedPosition(double x, double y, double z, double speedModifier) {
+        super.setWantedPosition(x, y, z, speedModifier);
     }
 
     @Override
@@ -41,9 +39,8 @@ public class FeaturedMoveControl extends MoveControl {
             double dY = wantedY - mob.getY();
             double dZ = wantedZ - mob.getZ();
             double distH = Math.sqrt(dX * dX + dZ * dZ);
-            float directYaw = distH > MIN_DIST ? (float) (Mth.atan2(dZ, dX) * Mth.RAD_TO_DEG) - 90.0F : mob.getYRot();
-            float maxTurn = mob.isInWater() ? MAX_YAW_WATER : MAX_YAW_LAND;
-            mob.setYRot(rotlerp(mob.getYRot(), directYaw, maxTurn));
+            float directYaw = distH > 0.1 ? (float) (Mth.atan2(dZ, dX) * Mth.RAD_TO_DEG) - 90.0F : mob.getYRot();
+            mob.setYRot(rotlerp(mob.getYRot(), directYaw, mob.isInWater() ? MAX_YAW_WATER : MAX_YAW_LAND));
             mob.yBodyRot = mob.getYRot();
             mob.setSpeed(speed);
             if (mob.isInWater())
@@ -83,7 +80,6 @@ public class FeaturedMoveControl extends MoveControl {
 
     private void handleLandMovement(double dY, double distH) {
         mob.setXRot(0.0F);
-
         BlockPos pos = mob.blockPosition();
         BlockState state = mob.level().getBlockState(pos);
         VoxelShape shape = state.getCollisionShape(mob.level(), pos);

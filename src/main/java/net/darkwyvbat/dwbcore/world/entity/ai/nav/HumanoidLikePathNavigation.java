@@ -11,16 +11,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.pathfinder.PathFinder;
-import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
     protected boolean canOpenDoors = true;
     protected boolean canPassDoors = true;
     protected boolean canOpenGates = true;
-    private boolean pathCrouchState = false;
 
     public HumanoidLikePathNavigation(Mob mob, Level level) {
         super(mob, level);
@@ -32,12 +28,6 @@ public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
 
     public void setCanPassDoors(boolean v) {
         canPassDoors = v;
-    }
-
-    public void setCanOpenGates(boolean v) {
-        canOpenGates = v;
-        if (nodeEvaluator instanceof HumanoidLikeNodeEvaluator hne)
-            hne.setCanOpenGates(v);
     }
 
     public boolean canOpenDoors() {
@@ -52,14 +42,20 @@ public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
         return canOpenGates;
     }
 
+    public void setCanOpenGates(boolean v) {
+        canOpenGates = v;
+        if (nodeEvaluator instanceof HumanoidLikeNodeEvaluator hne)
+            hne.setCanOpenGates(v);
+    }
+
     @Override
-    protected @NotNull PathFinder createPathFinder(int range) {
+    protected PathFinder createPathFinder(int maxVisitedNodes) {
         HumanoidLikeNodeEvaluator eval = new HumanoidLikeNodeEvaluator(false);
         eval.setCanPassDoors(canPassDoors);
         eval.setCanOpenDoors(canOpenDoors);
         eval.setCanOpenGates(canOpenGates);
         nodeEvaluator = eval;
-        return new PathFinder(eval, range);
+        return new PathFinder(eval, maxVisitedNodes);
     }
 
     @Override
@@ -68,26 +64,26 @@ public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
     }
 
     @Override
-    protected @NotNull Vec3 getTempMobPos() {
+    protected Vec3 getTempMobPos() {
         BlockPos pos = mob.blockPosition();
         if (level.getBlockState(pos).is(BlockTags.CLIMBABLE)) return Vec3.atCenterOf(pos);
         return super.getTempMobPos();
     }
 
     @Override
-    public boolean moveTo(@Nullable Path path, double speed) {
-        if (path != null && this.path != null && !this.path.isDone() && !path.isDone()) {
-            Node oldNext = this.path.getNextNode();
-            Node oldPrev = this.path.getPreviousNode();
-            if (isClimbNode(oldNext) && isClimbNode(path.getNextNode()))
-                syncIndexByNode(path, oldNext);
-            else if (isClimbNode(oldPrev) && !isClimbNode(path.getNextNode())) {
-                syncIndexByNode(path, oldNext);
-                if (path.getNextNodeIndex() == 0)
-                    syncIndexByNode(path, oldPrev);
+    public boolean moveTo(Path newPath, double speedModifier) {
+        if (newPath != null && path != null && !path.isDone() && !newPath.isDone()) {
+            Node oldNext = path.getNextNode();
+            Node oldPrev = path.getPreviousNode();
+            if (isClimbNode(oldNext) && isClimbNode(newPath.getNextNode())) {
+                syncIndexByNode(newPath, oldNext);
+            } else if (isClimbNode(oldPrev) && !isClimbNode(newPath.getNextNode())) {
+                syncIndexByNode(newPath, oldNext);
+                if (newPath.getNextNodeIndex() == 0)
+                    syncIndexByNode(newPath, oldPrev);
             }
         }
-        return super.moveTo(path, speed);
+        return super.moveTo(newPath, speedModifier);
     }
 
     @Override
@@ -96,36 +92,45 @@ public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
             stopNavigation();
             return;
         }
+        if (mob.tickCount % 16 == 0) recoverIndex();
 
         Vec3 pos = mob.position();
         Node nextNode = path.getNextNode(), prevNode = path.getPreviousNode();
-        if (mob instanceof Crouchable crouchable && crouchable.isCrouching() == pathCrouchState)
-            crouchable.setCrouch(pathCrouchState = isCrouchNode(nextNode) || isCrouchNode(prevNode));
-        boolean nextIsClimb = isClimbNode(nextNode);
-        boolean prevIsClimb = isClimbNode(prevNode);
-        if (nextIsClimb || prevIsClimb) {
-            Vec3 target = nextIsClimb ? Vec3.atBottomCenterOf(nextNode.asBlockPos()) : path.getNextEntityPos(mob);
-            if (pos.distanceToSqr(target.x, pos.y, target.z) < (nextIsClimb ? 1.0 : 0.1)) {
-                boolean advance;
-                if (nextIsClimb && prevIsClimb) {
-                    if (nextNode.y > prevNode.y) advance = pos.y >= nextNode.y - 0.1;
-                    else if (nextNode.y < prevNode.y) advance = pos.y <= nextNode.y + 0.2;
-                    else advance = Math.abs(pos.y - nextNode.y) < 0.3;
-                } else if (nextIsClimb)
-                    advance = Math.abs(pos.y - nextNode.y) < 0.8;
-                else
-                    advance = mob.onGround() || Math.abs(pos.y - WalkNodeEvaluator.getFloorLevel(level, nextNode.asBlockPos())) < 0.25;
+        if (mob instanceof Crouchable crouchable) {
+            boolean shouldCrouch = isCrouchNode(nextNode) || isCrouchNode(prevNode);
+            if (crouchable.isCrouching() != shouldCrouch)
+                crouchable.setCrouch(shouldCrouch);
+        }
 
-                if (advance) path.advance();
-            }
+        if (isClimbNode(nextNode)) {
+            double dX = Math.abs(pos.x - (nextNode.x + 0.5));
+            double dY = Math.abs(pos.y - nextNode.y);
+            double dZ = Math.abs(pos.z - (nextNode.z + 0.5));
+            if (dX < 1.0 && dZ < 1.0 && dY < 0.6)
+                path.advance();
         } else
             super.followThePath();
-
         if (!isDone()) {
             Vec3 dest = path.getNextEntityPos(mob);
             mob.getMoveControl().setWantedPosition(dest.x, dest.y, dest.z, speedModifier);
         } else
             stopNavigation();
+    }
+
+    private void recoverIndex() {
+        int current = path.getNextNodeIndex(), closest = -1;
+        int a = Math.max(0, current - 5), b = Math.min(path.getNodeCount(), current + 3);
+        double minDistSqr = 16.0;
+        for (int i = a; i < b; i++) {
+            Node node = path.getNode(i);
+            double distSqr = mob.distanceToSqr(node.x + 0.5, node.y, node.z + 0.5);
+            if (distSqr < minDistSqr) {
+                minDistSqr = distSqr;
+                closest = i;
+            }
+        }
+        if (closest == -1) recomputePath();
+        else if (closest != current) path.setNextNodeIndex(closest);
     }
 
     private void stopNavigation() {
@@ -139,23 +144,24 @@ public class HumanoidLikePathNavigation extends AmphibiousPathNavigation {
         int current = path.getNextNodeIndex();
         for (int offset = 0; offset < 3; ++offset) {
             int i = current + offset;
-            if (i >= 0 && i < count && path.getNode(i).equals(targetNode)) {
+            if (i >= 0 && i < count && path.getNode(i) == (targetNode)) {
                 path.setNextNodeIndex(i);
                 return;
             }
             if (offset != 0) {
                 i = current - offset;
-                if (i >= 0 && i < count && path.getNode(i).equals(targetNode)) {
+                if (i >= 0 && i < count && path.getNode(i) == targetNode) {
                     path.setNextNodeIndex(i);
                     return;
                 }
             }
         }
-        for (int i = 0; i < count; i++)
-            if (path.getNode(i).equals(targetNode)) {
+        for (int i = 0; i < count; i++) {
+            if (path.getNode(i) == targetNode) {
                 path.setNextNodeIndex(i);
                 return;
             }
+        }
     }
 
     public static boolean isClimbNode(Node node) {

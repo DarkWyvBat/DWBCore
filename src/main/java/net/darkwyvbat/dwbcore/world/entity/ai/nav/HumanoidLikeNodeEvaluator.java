@@ -2,12 +2,9 @@ package net.darkwyvbat.dwbcore.world.entity.ai.nav;
 
 import it.unimi.dsi.fastutil.longs.Long2BooleanMap;
 import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.darkwyvbat.dwbcore.lowzone.NodeExtension;
 import net.darkwyvbat.dwbcore.world.entity.Crouchable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.PathNavigationRegion;
@@ -18,13 +15,11 @@ import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.PathfindingContext;
 import net.minecraft.world.phys.AABB;
-import org.jetbrains.annotations.NotNull;
 
 public class HumanoidLikeNodeEvaluator extends AmphibiousNodeEvaluator {
+    private final BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
     private final Long2BooleanMap crouchCache = new Long2BooleanOpenHashMap();
-    private final Long2ObjectMap<DwbPathType> typeCache = new Long2ObjectOpenHashMap<>();
     protected boolean canOpenGates;
-    private int cacheReset = 0;
 
     public HumanoidLikeNodeEvaluator(boolean prefersShallowSwimming) {
         super(prefersShallowSwimming);
@@ -35,9 +30,8 @@ public class HumanoidLikeNodeEvaluator extends AmphibiousNodeEvaluator {
     }
 
     @Override
-    public void prepare(PathNavigationRegion region, Mob mob) {
-        super.prepare(region, mob);
-        mob.setPathfindingMalus(PathType.WATER, 1.0F);
+    public void prepare(PathNavigationRegion level, Mob mob) {
+        super.prepare(level, mob);
         mob.setPathfindingMalus(PathType.UNPASSABLE_RAIL, 0.0F);
 
         if (mob.getNavigation() instanceof HumanoidLikePathNavigation nav) {
@@ -45,16 +39,33 @@ public class HumanoidLikeNodeEvaluator extends AmphibiousNodeEvaluator {
             setCanPassDoors(nav.canPassDoors());
             setCanOpenGates(nav.canOpenGates());
         }
-
-        if (++cacheReset > 100) {
-            crouchCache.clear();
-            typeCache.clear();
-            cacheReset = 0;
-        }
     }
 
     @Override
-    public @NotNull PathType getPathTypeOfMob(PathfindingContext context, int x, int y, int z, Mob mob) {
+    public void done() {
+        super.done();
+        crouchCache.clear();
+    }
+
+    private boolean isClimbable(int x, int y, int z) {
+        return currentContext.getBlockState(mutablePos.set(x, y, z)).is(BlockTags.CLIMBABLE);
+    }
+
+    @Override
+    public Node getStart() {
+        BlockPos blockPos = mob.blockPosition();
+        if (isClimbable(blockPos.getX(), blockPos.getY(), blockPos.getZ())) {
+            Node start = getNode(blockPos);
+            ((NodeExtension) start).dwbcore_setType(DwbPathTypes.CLIMB);
+            start.type = DwbPathTypes.CLIMB.getFallback();
+            start.costMalus = DwbPathTypes.CLIMB.getMalus();
+            return start;
+        }
+        return super.getStart();
+    }
+
+    @Override
+    public PathType getPathTypeOfMob(PathfindingContext context, int x, int y, int z, Mob mob) {
         PathType pathType = super.getPathTypeOfMob(context, x, y, z, mob);
         if (pathType != PathType.BLOCKED) return pathType;
         if (!(mob instanceof Crouchable crouchable) || !crouchable.canCrouch()) return PathType.BLOCKED;
@@ -68,96 +79,79 @@ public class HumanoidLikeNodeEvaluator extends AmphibiousNodeEvaluator {
 
         boolean canPass = false;
         if (crouchType != PathType.BLOCKED && crouchType != PathType.OPEN) {
-            double floorY = getFloorLevel(new BlockPos(x, y, z));
-            AABB aabb = crouchable.getCrouchDimension().makeBoundingBox(x + 0.5, floorY, z + 0.5);
-            canPass = context.level().noCollision(mob, aabb);
+            if (!context.getBlockState(mutablePos.set(x, y + 1, z)).isCollisionShapeFullBlock(context.level(), mutablePos)) {
+                double floorY = getFloorLevel(mutablePos.set(x, y, z));
+                AABB aabb = crouchable.getCrouchDimension().makeBoundingBox(x + 0.5, floorY, z + 0.5);
+                canPass = context.level().noCollision(mob, aabb);
+            }
         }
         crouchCache.put(key, canPass);
         return canPass ? crouchType : PathType.BLOCKED;
     }
 
     @Override
-    public @NotNull PathType getPathType(PathfindingContext ctx, int x, int y, int z) {
-        long key = BlockPos.asLong(x, y, z);
-        if (typeCache.containsKey(key)) return typeCache.get(key).getFallback();
-
-        BlockState state = ctx.getBlockState(new BlockPos(x, y, z));
-        DwbPathType type = DwbPathType.NONE;
-        PathType vanilla;
-        if (state.is(BlockTags.CLIMBABLE)) {
-            type = DwbPathTypes.CLIMB;
-            vanilla = type.getFallback();
-        } else if (canOpenGates && state.getBlock() instanceof FenceGateBlock)
-            vanilla = PathType.WALKABLE_DOOR;
-        else
-            vanilla = super.getPathType(ctx, x, y, z);
-
-        if (type != DwbPathType.NONE) typeCache.put(key, type);
-        return vanilla;
+    public PathType getPathType(PathfindingContext context, int x, int y, int z) {
+        BlockState state = context.getBlockState(mutablePos.set(x, y, z));
+        if (state.is(BlockTags.CLIMBABLE)) return DwbPathTypes.CLIMB.getFallback();
+        else if (canOpenGates && state.getBlock() instanceof FenceGateBlock) return PathType.WALKABLE_DOOR;
+        return super.getPathType(context, x, y, z);
     }
 
     @Override
     public int getNeighbors(Node[] neighbors, Node node) {
-        ensureNodeType(node);
+        setNodeType(node);
         int count = super.getNeighbors(neighbors, node);
         DwbPathType nodeType = ((NodeExtension) node).dwbcore_getType();
 
         if (nodeType.isClimb()) {
-            count = addNode(neighbors, count, getClimbNode(node.x, node.y + 1, node.z));
-            count = addNode(neighbors, count, getClimbNode(node.x, node.y - 1, node.z));
-            BlockPos pos = node.asBlockPos();
-            if (currentContext.getBlockState(pos.above()).isAir())
-                count = addNode(neighbors, count, getPotentialNode(node.x, node.y + 1, node.z));
-            for (Direction dir : Direction.Plane.HORIZONTAL) {
-                Node neighbor = getPotentialNode(node.x + dir.getStepX(), node.y, node.z + dir.getStepZ());
-                if (neighbor != null && !((NodeExtension) neighbor).dwbcore_getType().isClimb())
-                    count = addNode(neighbors, count, neighbor);
-            }
-        } else {
-            BlockPos pos = node.asBlockPos();
-            for (Direction dir : Direction.Plane.HORIZONTAL) {
-                BlockPos check = pos.relative(dir);
-                if (currentContext.getBlockState(check).is(BlockTags.CLIMBABLE))
-                    count = addNode(neighbors, count, getClimbNode(check.getX(), check.getY(), check.getZ()));
-            }
-            BlockPos below = pos.below();
-            if (currentContext.getBlockState(below).is(BlockTags.CLIMBABLE))
-                count = addNode(neighbors, count, getClimbNode(below.getX(), below.getY(), below.getZ()));
+            Node upNode = getClimbNode(node.x, node.y + 1, node.z);
+            count = addNode(neighbors, count, upNode != null ? upNode : getPotentialNode(node.x, node.y + 1, node.z));
+        } else if (isClimbable(node.x, node.y + 1, node.z)) {
+            Node upNode = getClimbNode(node.x, node.y + 1, node.z);
+            count = addNode(neighbors, count, upNode);
         }
-        return count;
+
+        for (int i = 0; i < count; i++) {
+            Node neighbor = neighbors[i];
+            if (isClimbable(neighbor.x, neighbor.y, neighbor.z)) {
+                long key = BlockPos.asLong(neighbor.x, neighbor.y, neighbor.z);
+                if (crouchCache.get(key)) {
+                    ((NodeExtension) neighbor).dwbcore_setType(DwbPathTypes.CROUCH);
+                    neighbor.costMalus = Math.max(neighbor.costMalus, DwbPathTypes.CROUCH.getMalus());
+                } else {
+                    ((NodeExtension) neighbor).dwbcore_setType(DwbPathTypes.CLIMB);
+                    neighbor.costMalus = Math.max(neighbor.costMalus, DwbPathTypes.CLIMB.getMalus());
+                }
+            }
+        }
+        return addNode(neighbors, count, getClimbNode(node.x, node.y - 1, node.z));
     }
 
-    private void ensureNodeType(Node node) {
+    private void setNodeType(Node node) {
         if (((NodeExtension) node).dwbcore_getType() != DwbPathType.NONE) return;
 
         long key = BlockPos.asLong(node.x, node.y, node.z);
-        if (typeCache.containsKey(key) && typeCache.get(key).isClimb()) {
+        boolean isClimb = isClimbable(node.x, node.y, node.z);
+        boolean isCrouch = crouchCache.get(key);
+        if (isClimb && isCrouch) {
+            ((NodeExtension) node).dwbcore_setType(DwbPathTypes.HUMANOID);
+            node.costMalus = DwbPathTypes.HUMANOID.getMalus();
+        } else if (isClimb) {
             ((NodeExtension) node).dwbcore_setType(DwbPathTypes.CLIMB);
             node.costMalus = DwbPathTypes.CLIMB.getMalus();
-            return;
-        }
-        if (currentContext.getBlockState(node.asBlockPos()).is(BlockTags.CLIMBABLE)) {
-            ((NodeExtension) node).dwbcore_setType(DwbPathTypes.CLIMB);
-            node.costMalus = DwbPathTypes.CLIMB.getMalus();
-            typeCache.put(key, DwbPathTypes.CLIMB);
-            return;
-        }
-        if (crouchCache.get(key)) {
+        } else if (isCrouch) {
             ((NodeExtension) node).dwbcore_setType(DwbPathTypes.CROUCH);
             node.costMalus = DwbPathTypes.CROUCH.getMalus();
         }
     }
 
     private Node getClimbNode(int x, int y, int z) {
-        long key = BlockPos.asLong(x, y, z);
-        if (typeCache.get(key) == DwbPathTypes.CLIMB || currentContext.getBlockState(new BlockPos(x, y, z)).is(BlockTags.CLIMBABLE)) {
-            Node node = getNode(x, y, z);
-            ((NodeExtension) node).dwbcore_setType(DwbPathTypes.CLIMB);
-            node.type = DwbPathTypes.CLIMB.getFallback();
-            node.costMalus = DwbPathTypes.CLIMB.getMalus();
-            return node;
-        }
-        return null;
+        if (!isClimbable(x, y, z)) return null;
+        Node node = getNode(x, y, z);
+        ((NodeExtension) node).dwbcore_setType(DwbPathTypes.CLIMB);
+        node.type = DwbPathTypes.CLIMB.getFallback();
+        node.costMalus = DwbPathTypes.CLIMB.getMalus();
+        return node;
     }
 
     private Node getPotentialNode(int x, int y, int z) {

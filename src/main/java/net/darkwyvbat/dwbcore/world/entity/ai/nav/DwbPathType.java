@@ -9,11 +9,12 @@ public class DwbPathType {
     private float malus = 0.0F;
     private boolean isClimb = false;
     private boolean isCrouch = false;
+    private boolean isCrawl = false;
     private boolean isDanger = false;
     private boolean isBreach = false;
     private byte selfSate = 0;
 
-    private String data = null;
+    private Object data;
 
     public DwbPathType(PathType fallback) {
         this.fallback = fallback;
@@ -34,6 +35,11 @@ public class DwbPathType {
         return this;
     }
 
+    public DwbPathType crawl() {
+        isCrawl = true;
+        return this;
+    }
+
     public DwbPathType danger() {
         isDanger = true;
         return this;
@@ -49,7 +55,7 @@ public class DwbPathType {
         return this;
     }
 
-    public void setData(String data) {
+    public void setData(Object data) {
         this.data = data;
     }
 
@@ -81,7 +87,7 @@ public class DwbPathType {
         return selfSate;
     }
 
-    public String getData() {
+    public Object getData() {
         return data;
     }
 }

@@ -51,7 +51,6 @@ public class OpenPassageGoal extends Goal {
     private void setState(ServerLevel level, BlockState state, BlockPos pos, boolean open, Mob mob) {
         boolean stateChanged = false;
         Block block = state.getBlock();
-
         if (block instanceof DoorBlock door) {
             if (door.isOpen(state) != open) {
                 door.setOpen(mob, level, state, pos, open);
@@ -127,7 +126,6 @@ public class OpenPassageGoal extends Goal {
         boolean openedSomething = false;
         double inflationAmount = mob.getBbWidth() * (1.2 - 1.0) / 2.0;
         AABB aabb = mob.getBoundingBox().inflate(inflationAmount, 0.0, inflationAmount);
-
         for (BlockPos posInBox : BlockPos.betweenClosed(BlockPos.containing(aabb.minX, aabb.minY, aabb.minZ), BlockPos.containing(aabb.maxX, aabb.maxY, aabb.maxZ))) {
             BlockState state = level.getBlockState(posInBox);
             if (isClosed(state)) {
@@ -163,7 +161,6 @@ public class OpenPassageGoal extends Goal {
                     it.remove();
                 continue;
             }
-
             setState(level, state, bp, false, mob);
             it.remove();
         }
