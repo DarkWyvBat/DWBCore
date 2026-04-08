@@ -86,7 +86,7 @@ public class FoundationPoolElement extends SinglePoolElement {
                                     processedInfo = processor.processBlock(level, mutablePos, mutablePos, originalInfo, processedInfo, settings);
                                     if (processedInfo == null) break;
                                 }
-                                if (processedInfo != null) level.setBlock(mutablePos, processedInfo.state(), 3);
+                                if (processedInfo != null) level.setBlock(mutablePos, processedInfo.state(), 2);
                                 mutablePos.move(Direction.DOWN);
                             }
                             break;
